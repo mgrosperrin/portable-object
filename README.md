@@ -1,4 +1,5 @@
-# MGR.PortableObject libraries
+MGR.PortableObject libraries
+============================
 
 This project contains various .NET implementation of PortableObject related items:
 
@@ -12,7 +13,11 @@ _**Build status**_
 |------------|---------------------------------------------------------|
 | **master** | [![Build status][build-status_master_img]][build-status_master_url] |
 
-# [How to use the library?](docs/parse-file.md)
+[![Number of open issues][github-issues_img]][github-issues_url]
+[![Number of open PR][github-pr_img]][github-pr_url]
+
+# How to use the library?
+[See this article to learn how to use the parser.](docs/parse-file.md)
 
    [build-status_dev_img]: https://mgrosperrin.visualstudio.com/github/_apis/build/status/MGR.PortableObject?branchName=dev
    [build-status_dev_url]: https://mgrosperrin.visualstudio.com/github/_build?definitionId=13
