@@ -16,12 +16,13 @@ namespace MGR.PortableObject.Parsing
 
         private readonly CultureInfo _culture;
 
-        private readonly Dictionary<PortableObjectKey, IPortableObjectEntry> _translations = new Dictionary<PortableObjectKey, IPortableObjectEntry>();
+        private readonly Dictionary<PortableObjectKey, IPortableObjectEntry> _entries = new Dictionary<PortableObjectKey, IPortableObjectEntry>();
         private readonly List<string> _currentTranslations = new List<string>();
 
         private string? _currentContext;
         private string _currentId = string.Empty;
         private LineType _lastLineType = LineType.Unknown;
+        private IPluralForm _pluralForm;
 
         /// <summary>
         /// Creates a new builder.
@@ -29,6 +30,7 @@ namespace MGR.PortableObject.Parsing
         public CatalogBuilder(CultureInfo culture)
         {
             _culture = culture;
+            _pluralForm = PluralForms.For(_culture);
         }
 
         /// <summary>
@@ -38,7 +40,7 @@ namespace MGR.PortableObject.Parsing
         public ICatalog BuildCatalog()
         {
             FlushEntry();
-            return new Catalog(_translations, _culture);
+            return new Catalog(_entries, _culture);
         }
         public void AppendLine(string line)
         {
@@ -100,12 +102,18 @@ namespace MGR.PortableObject.Parsing
             if (_currentTranslations.Count > 0 && !string.IsNullOrEmpty(_currentId))
             {
                 var key = new PortableObjectKey(_currentId, _currentContext);
-                _translations.Add(key, new PortableObjectEntry(key, _currentTranslations.ToArray()));
+                AddEntry(key, _currentTranslations);
 
                 _currentContext = null;
                 _currentId = string.Empty;
             }
             _currentTranslations.Clear();
+        }
+
+        private void AddEntry(PortableObjectKey key, List<string> translations)
+        {
+            var entry = new PortableObjectEntry(key, _pluralForm, translations.ToArray());
+            _entries.Add(key, entry);
         }
 
         private enum LineType

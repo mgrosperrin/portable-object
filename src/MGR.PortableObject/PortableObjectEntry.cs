@@ -5,6 +5,7 @@
     /// </summary>
     public class PortableObjectEntry : IPortableObjectEntry
     {
+        private readonly IPluralForm _pluralForm;
         private readonly string[] _translations;
 
         /// <inheritdoc />
@@ -20,10 +21,12 @@
         /// Create a new instance of a <see cref="PortableObjectEntry"/>.
         /// </summary>
         /// <param name="portableObjectKey">The <see cref="PortableObjectKey"/> of the entry.</param>
+        /// <param name="pluralForm">The plural form computation.</param>
         /// <param name="translations">The translations of the entry.</param>
-        public PortableObjectEntry(PortableObjectKey portableObjectKey, string[] translations)
+        public PortableObjectEntry(PortableObjectKey portableObjectKey, IPluralForm pluralForm, string[] translations)
         {
             Key = portableObjectKey;
+            _pluralForm = pluralForm;
             _translations = translations;
             HasTranslation = translations.Length > 0;
         }
@@ -35,13 +38,20 @@
         }
 
         /// <inheritdoc />
-        public string GetPluralTranslation(int pluralForm)
+        public string GetPluralTranslation(int numberOfItems)
         {
-            if (HasTranslation && _translations.Length >= pluralForm)
+            if (!HasTranslation)
             {
-                return _translations[pluralForm];
+                return Key.Id;
             }
-            return Key.Id;
+
+            var pluralForm = _pluralForm.GetPluralFormForNumber(numberOfItems);
+            if (_translations.Length < pluralForm)
+            {
+                return Key.Id;
+            }
+
+            return _translations[pluralForm];
         }
     }
 }

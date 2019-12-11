@@ -26,10 +26,10 @@
         /// <returns>A string representing the primary translation from the current entry.</returns>
         string GetTranslation();
         /// <summary>
-        /// Gets the plural translation of the specified plural from the current entry.
+        /// Gets the plural translation for the specified number of items from the current entry.
         /// </summary>
-        /// <param name="pluralForm">The plural form.</param>
+        /// <param name="numberOfItems">The number of items.</param>
         /// <returns>A string representing the requested translation.</returns>
-        string GetPluralTranslation(int pluralForm);
+        string GetPluralTranslation(int numberOfItems);
     }
 }

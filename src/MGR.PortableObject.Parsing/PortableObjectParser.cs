@@ -26,7 +26,6 @@ namespace MGR.PortableObject.Parsing
             string? line;
             while ((line = await textReader.ReadLineAsync()) != null)
             {
-
                 translationsBuilder.AppendLine(line);
             }
             var translations = translationsBuilder.BuildCatalog();

@@ -115,7 +115,7 @@ namespace MGR.PortableObject.UnitTests.Parsing
 
                 var translation = entries.GetEntry(new PortableObjectKey("book"));
                 Assert.True(translation.HasTranslation);
-                Assert.Equal("livres", translation.GetPluralTranslation(0));
+                Assert.Equal("livre", translation.GetPluralTranslation(0));
                 Assert.Equal("livre", translation.GetPluralTranslation(1));
                 Assert.Equal("livres", translation.GetPluralTranslation(2));
             }

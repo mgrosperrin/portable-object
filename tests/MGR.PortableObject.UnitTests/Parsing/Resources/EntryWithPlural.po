@@ -1,5 +1,4 @@
 msgid "book"
 msgid_plural "books"
-msgstr[0] "livres"
-msgstr[1] "livre"
-msgstr[2] "livres"
+msgstr[0] "livre"
+msgstr[1] "livres"
