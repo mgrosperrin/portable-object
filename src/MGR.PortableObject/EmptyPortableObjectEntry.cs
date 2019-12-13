@@ -14,9 +14,11 @@ namespace MGR.PortableObject
         public PortableObjectKey Key { get; }
         public bool HasTranslation { get; } = false;
         public int Count { get; } = 0;
-        public string GetTranslation() => Key.Id;
 
-        public string GetPluralTranslation(int pluralForm) => Key.Id;
+        public string GetTranslation(int quantity)
+        {
+            return quantity <= 1 ? Key.Id : Key.IdPlural ?? Key.Id;
+        }
 
         public static IPortableObjectEntry ForKey(PortableObjectKey key)
         {

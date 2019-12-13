@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace MGR.PortableObject.Parsing
 {
@@ -9,19 +9,10 @@ namespace MGR.PortableObject.Parsing
     /// </summary>
     internal class CatalogBuilder
     {
-        private const string ContextPrefix = "msgctxt";
-        private const string KeyPrefix = "msgid";
-        private const string TranslationPrefix = "msgstr";
-        private const string CommentPrefix = "#";
-
         private readonly CultureInfo _culture;
+        private readonly PortableObjectEntryBuilder _entryBuilder;
 
-        private readonly Dictionary<PortableObjectKey, IPortableObjectEntry> _translations = new Dictionary<PortableObjectKey, IPortableObjectEntry>();
-        private readonly List<string> _currentTranslations = new List<string>();
-
-        private string? _currentContext;
-        private string _currentId = string.Empty;
-        private LineType _lastLineType = LineType.Unknown;
+        private readonly List< IPortableObjectEntry> _entries = new List<IPortableObjectEntry>();
 
         /// <summary>
         /// Creates a new builder.
@@ -29,7 +20,11 @@ namespace MGR.PortableObject.Parsing
         public CatalogBuilder(CultureInfo culture)
         {
             _culture = culture;
+            PluralForm = PluralForms.For(culture);
+            _entryBuilder = new PortableObjectEntryBuilder(this);
         }
+
+        internal IPluralForm PluralForm { get; private set; }
 
         /// <summary>
         /// Build the catalog with the currently parsed lines.
@@ -37,83 +32,33 @@ namespace MGR.PortableObject.Parsing
         /// <returns>A catalog</returns>
         public ICatalog BuildCatalog()
         {
-            FlushEntry();
-            return new Catalog(_translations, _culture);
-        }
-        public void AppendLine(string line)
-        {
-            if (line.StartsWith(CommentPrefix))
+            var finalEntry = _entryBuilder.BuildEntry();
+            if (finalEntry != null)
             {
-                return;
+                AddEntry(finalEntry);
             }
-            if (line.StartsWithQuote())
-            {
-                var lineContent = line.Trim().TrimQuote().Unescape();
-                AppendLineContent(lineContent);
-                return;
-            }
-
-            var keyAndValue = line.Split(null, 2);
-            if (keyAndValue.Length != 2)
-            {
-                return;
-            }
-
-            var content = keyAndValue[1].Trim().TrimQuote().Unescape();
-            switch (keyAndValue[0])
-            {
-                case ContextPrefix:
-                    FlushEntry();
-                    _currentContext = content;
-                    _lastLineType = LineType.Context;
-                    break;
-                case KeyPrefix:
-                    FlushEntry();
-                    _currentId = content;
-                    _lastLineType = LineType.Id;
-                    break;
-                case var key when key.StartsWith(TranslationPrefix, StringComparison.Ordinal):
-                    _currentTranslations.Add(content);
-                    _lastLineType = LineType.Translation;
-                    break;
-            }
+            return new Catalog(_entries.ToDictionary(_ => _.Key), _culture);
         }
 
-        private void AppendLineContent(string lineContent)
+        public void SetPluralForm(IPluralForm pluralForm)
         {
-            switch (_lastLineType)
-            {
-                case LineType.Context:
-                    _currentContext += lineContent;
-                    break;
-                case LineType.Id:
-                    _currentId += lineContent;
-                    break;
-                case LineType.Translation:
-                    _currentTranslations[_currentTranslations.Count - 1] += lineContent;
-                    break;
-            }
+            PluralForm = pluralForm;
         }
 
-        private void FlushEntry()
+        public PortableObjectEntryBuilder GetEntryBuilder()
         {
-            if (_currentTranslations.Count > 0 && !string.IsNullOrEmpty(_currentId))
-            {
-                var key = new PortableObjectKey(_currentId, _currentContext);
-                _translations.Add(key, new PortableObjectEntry(key, _currentTranslations.ToArray()));
-
-                _currentContext = null;
-                _currentId = string.Empty;
-            }
-            _currentTranslations.Clear();
+            return _entryBuilder;
         }
 
-        private enum LineType
+        internal void AddEntry(PortableObjectKey key, List<string> translations)
         {
-            Unknown = 0,
-            Context = 1,
-            Id = 2,
-            Translation = 3
+            var entry = new PortableObjectEntry(key, PluralForm, translations.ToArray());
+            AddEntry(entry);
+        }
+
+        internal void AddEntry(IPortableObjectEntry portableObjectEntry)
+        {
+            _entries.Add(portableObjectEntry);
         }
     }
 }

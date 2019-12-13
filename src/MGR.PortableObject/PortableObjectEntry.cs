@@ -1,10 +1,13 @@
-﻿namespace MGR.PortableObject
+﻿using System;
+
+namespace MGR.PortableObject
 {
     /// <summary>
     /// Default implementation of an entry with translations.
     /// </summary>
     public class PortableObjectEntry : IPortableObjectEntry
     {
+        private readonly IPluralForm _pluralForm;
         private readonly string[] _translations;
 
         /// <inheritdoc />
@@ -20,28 +23,45 @@
         /// Create a new instance of a <see cref="PortableObjectEntry"/>.
         /// </summary>
         /// <param name="portableObjectKey">The <see cref="PortableObjectKey"/> of the entry.</param>
+        /// <param name="pluralForm">The plural form computation.</param>
         /// <param name="translations">The translations of the entry.</param>
-        public PortableObjectEntry(PortableObjectKey portableObjectKey, string[] translations)
+        public PortableObjectEntry(PortableObjectKey portableObjectKey, IPluralForm pluralForm, string[] translations)
         {
             Key = portableObjectKey;
+            _pluralForm = pluralForm;
             _translations = translations;
+            if (translations.Length > _pluralForm.NumberOfPluralForms)
+            {
+                throw new InvalidOperationException("The number of translations is superior to the number of plural forms.");
+            }
             HasTranslation = translations.Length > 0;
         }
 
-        /// <inheritdoc />
-        public string GetTranslation()
+        private string GetsTheIdForPluralForm(int pluralForm)
         {
-            return HasTranslation ? _translations[0] : Key.Id;
+            if (pluralForm == 0)
+            {
+                return Key.Id;
+            }
+
+            return Key.IdPlural ?? Key.Id;
         }
 
         /// <inheritdoc />
-        public string GetPluralTranslation(int pluralForm)
+        public string GetTranslation(int quantity)
         {
-            if (HasTranslation && _translations.Length >= pluralForm)
+            var pluralForm = _pluralForm.GetPluralFormForQuantity(quantity);
+            if (!HasTranslation)
             {
-                return _translations[pluralForm];
+                return GetsTheIdForPluralForm(pluralForm);
             }
-            return Key.Id;
+
+            if (_translations.Length < pluralForm)
+            {
+                return GetsTheIdForPluralForm(pluralForm);
+            }
+
+            return _translations[pluralForm];
         }
     }
 }

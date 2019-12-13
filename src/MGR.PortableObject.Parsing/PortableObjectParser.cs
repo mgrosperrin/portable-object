@@ -14,23 +14,36 @@ namespace MGR.PortableObject.Parsing
          * https://www.gnu.org/software/gettext/manual/html_node/Plural-forms.html#Plural-forms
          * https://www.gnu.org/software/gettext/manual/html_node/Translating-plural-forms.html#Translating-plural-forms
          */
+
         /// <summary>
         /// Parses a PortableObject file.
         /// </summary>
         /// <param name="textReader">The <see cref="TextReader"/> representing the content of the file.</param>
-        /// <param name="culture">The culture of the Portable Object file.</param>
+        /// <param name="culture">The culture of the PortableObject file.</param>
         /// <returns>The translations parsed from the file content.</returns>
         public async Task<ICatalog> ParseAsync(TextReader textReader, CultureInfo culture)
         {
-            var translationsBuilder = new CatalogBuilder(culture);
+            var catalogBuilder = new CatalogBuilder(culture);
+            catalogBuilder.SetPluralForm(PluralForms.For(culture));
+            var entryBuilder = catalogBuilder.GetEntryBuilder();
             string? line;
             while ((line = await textReader.ReadLineAsync()) != null)
             {
-
-                translationsBuilder.AppendLine(line);
+                if (string.IsNullOrEmpty(line))
+                {
+                    var entry = entryBuilder.BuildEntry();
+                    if (entry != null)
+                    {
+                        catalogBuilder.AddEntry(entry);
+                    }
+                }
+                else
+                {
+                    entryBuilder.AppendLine(line);
+                }
             }
-            var translations = translationsBuilder.BuildCatalog();
-            return translations;
+            var catalog = catalogBuilder.BuildCatalog();
+            return catalog;
         }
     }
 }

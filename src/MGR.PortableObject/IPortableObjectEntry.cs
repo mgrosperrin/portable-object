@@ -21,15 +21,10 @@
         int Count { get; }
 
         /// <summary>
-        /// Gets the primary translation from the current entry.
+        /// Gets the translation for the specified quantity from the current entry.
         /// </summary>
-        /// <returns>A string representing the primary translation from the current entry.</returns>
-        string GetTranslation();
-        /// <summary>
-        /// Gets the plural translation of the specified plural from the current entry.
-        /// </summary>
-        /// <param name="pluralForm">The plural form.</param>
+        /// <param name="quantity">The quantity.</param>
         /// <returns>A string representing the requested translation.</returns>
-        string GetPluralTranslation(int pluralForm);
+        string GetTranslation(int quantity);
     }
 }
