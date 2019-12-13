@@ -14,6 +14,10 @@ namespace MGR.PortableObject
         /// </summary>
         public string Id { get; }
         /// <summary>
+        /// Gets the plural Id of the key.
+        /// </summary>
+        public string? IdPlural { get; }
+        /// <summary>
         /// Gets the (optional) context of the key.
         /// </summary>
         public string? Context { get; }
@@ -21,26 +25,48 @@ namespace MGR.PortableObject
         /// Creates a new key.
         /// </summary>
         /// <param name="id">The Id of the key.</param>
-        public PortableObjectKey(string id) : this(id, null) { }
+        public PortableObjectKey(string id) : this(null, id, null) { }
+
         /// <summary>
         /// Creates a new key.
         /// </summary>
-        /// <param name="id">The Id of the key.</param>
         /// <param name="context">The Context of the key.</param>
-        public PortableObjectKey(string id, string? context)
+        /// <param name="id">The Id of the key.</param>
+        public PortableObjectKey(string context, string id) : this(context, id, null) { }
+
+        /// <summary>
+        /// Creates a new key.
+        /// </summary>
+        /// <param name="context">The Context of the key.</param>
+        /// <param name="id">The Id of the key.</param>
+        /// <param name="idPlural">The Plural Id of the key.</param>
+        public PortableObjectKey(string? context, string id, string? idPlural)
         {
             Id = id;
             Context = context;
+            IdPlural = idPlural;
+        }
+
+        private string DebuggerDisplay
+        {
+            // ReSharper disable once UnusedMember.Local
+            get
+            {
+                var contextDisplay = Context == null ? "" : $"Context={Context}¤";
+                var idDisplay = $"Id={Id}";
+                var pluralIdDisplay = IdPlural == null ? "" : $"¤IdPlural={IdPlural}";
+                return contextDisplay + idDisplay + pluralIdDisplay;
+            }
         }
 
         /// <inheritdoc />
         public bool Equals(PortableObjectKey other)
         {
-            return Id == other.Id && Context == other.Context;
+            return Id == other.Id && IdPlural == other.IdPlural && Context == other.Context;
         }
 
         /// <inheritdoc />
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is PortableObjectKey other && Equals(other);
         }
@@ -50,11 +76,11 @@ namespace MGR.PortableObject
         {
             unchecked
             {
-                return (Id.GetHashCode() * 397) ^ (Context != null ? Context.GetHashCode() : 0);
+                var hashCode = Id.GetHashCode();
+                hashCode = (hashCode * 397) ^ (IdPlural != null ? IdPlural.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Context != null ? Context.GetHashCode() : 0);
+                return hashCode;
             }
         }
-
-        private string DebuggerDisplay =>
-            Context == null ? $"Id={Id}" : $"Context={Context}¤Id={Id}";
     }
 }

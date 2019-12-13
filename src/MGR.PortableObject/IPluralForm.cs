@@ -6,10 +6,14 @@
     public interface IPluralForm
     {
         /// <summary>
-        /// Get the plural form for the specified number of items.
+        /// Gets the number of plural forms.
         /// </summary>
-        /// <param name="numberOfItems">The number of items.</param>
+        int NumberOfPluralForms { get; }
+        /// <summary>
+        /// Get the plural form for the specified quantity.
+        /// </summary>
+        /// <param name="quantity">The quantity.</param>
         /// <returns>The plural form.</returns>
-        int GetPluralFormForNumber(int numberOfItems);
+        int GetPluralFormForQuantity(int quantity);
     }
 }

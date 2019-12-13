@@ -50,7 +50,7 @@ namespace MGR.PortableObject.UnitTests.Parsing
             {
                 var entries = await ParseText("EntryWithContext");
 
-                var translation = entries.GetEntry(new PortableObjectKey("Unknown system error", "MGR.Localization"));
+                var translation = entries.GetEntry(new PortableObjectKey("MGR.Localization", "Unknown system error"));
                 Assert.True(translation.HasTranslation);
                 Assert.Equal("Erreur système inconnue", translation.GetTranslation());
             }
@@ -60,7 +60,7 @@ namespace MGR.PortableObject.UnitTests.Parsing
             {
                 var entries = await ParseText("EntryWithComments");
 
-                var translation = entries.GetEntry(new PortableObjectKey("Unknown system error", "MGR.Localization"));
+                var translation = entries.GetEntry(new PortableObjectKey("MGR.Localization", "Unknown system error"));
                 Assert.True(translation.HasTranslation);
                 Assert.Equal("Erreur système inconnue", translation.GetTranslation());
             }
@@ -80,7 +80,7 @@ namespace MGR.PortableObject.UnitTests.Parsing
             {
                 var entries = await ParseText("EntryWithUnclosedQuote");
 
-                var translation = entries.GetEntry(new PortableObjectKey("Foo \"{0}\"", ""));
+                var translation = entries.GetEntry(new PortableObjectKey("", "Foo \"{0}\""));
                 Assert.True(translation.HasTranslation);
                 Assert.Equal("Foo \"{0}\"", translation.GetTranslation());
             }
@@ -113,11 +113,11 @@ namespace MGR.PortableObject.UnitTests.Parsing
             {
                 var entries = await ParseText("EntryWithPlural");
 
-                var translation = entries.GetEntry(new PortableObjectKey("book"));
+                var translation = entries.GetEntry(new PortableObjectKey(null, "book", "books"));
                 Assert.True(translation.HasTranslation);
-                Assert.Equal("livre", translation.GetPluralTranslation(0));
-                Assert.Equal("livre", translation.GetPluralTranslation(1));
-                Assert.Equal("livres", translation.GetPluralTranslation(2));
+                Assert.Equal("livres", translation.GetTranslation(0));
+                Assert.Equal("livre", translation.GetTranslation(1));
+                Assert.Equal("livres", translation.GetTranslation(2));
             }
 
             [Fact]
@@ -127,12 +127,12 @@ namespace MGR.PortableObject.UnitTests.Parsing
 
                 Assert.Equal(2, entries.Count);
 
-                var translation = entries.GetEntry(new PortableObjectKey("File {0} does not exist", "MGR.File"));
+                var translation = entries.GetEntry(new PortableObjectKey("MGR.File", "File {0} does not exist"));
 
                 Assert.True(translation.HasTranslation);
                 Assert.Equal("Le fichier {0} n'existe pas", translation.GetTranslation());
 
-                translation = entries.GetEntry(new PortableObjectKey("Directory {0} does not exist", "MGR.Directory"));
+                translation = entries.GetEntry(new PortableObjectKey("MGR.Directory", "Directory {0} does not exist"));
 
                 Assert.True(translation.HasTranslation);
                 Assert.Equal("Le répertoire {0} n'existe pas", translation.GetTranslation());

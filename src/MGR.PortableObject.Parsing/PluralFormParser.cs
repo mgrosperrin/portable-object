@@ -11,18 +11,26 @@ namespace MGR.PortableObject.Parsing
 {
     internal class PluralFormParser
     {
-        public IPluralForm Parse(string pluralForm)
-        {
-            var method = GetCompiledMethod(pluralForm);
+        private const char PluralFormsPartSeparator = ';';
 
-            return new FuncBasedPluralForm(method);
+        public IPluralForm Parse(string pluralFormsHeader)
+        {
+            var pluralFormsPart = pluralFormsHeader.Split(PluralFormsPartSeparator);
+            var pluralNumber = int.Parse(pluralFormsPart[0].Split('=')[1]);
+            var pluralFormFunc = pluralFormsPart[1].Replace("plural=", string.Empty);
+            var method = GetCompiledMethod(pluralFormFunc);
+
+            return new FuncBasedPluralForm(pluralNumber, method);
         }
 
         private Func<int, int> GetCompiledMethod(string pluralForm)
         {
-            var code = $@"namespace Plural {{
-    public static class Form {{
-        public static object Compute(int n){{
+            var code = $@"namespace Plural
+{{
+    public static class Form
+    {{
+        public static object Compute(int n)
+        {{
             return {pluralForm};
         }}
     }}
@@ -34,7 +42,8 @@ namespace MGR.PortableObject.Parsing
             var computeMethod = pluralFormType.GetMethod("Compute", BindingFlags.Static|BindingFlags.Public) ?? throw new InvalidOperationException("Unable to find the generated compute method.");
             return n =>
             {
-                var computationResult = computeMethod.Invoke(null, new object[] {n}) ?? throw new InvalidOperationException("The computation should return a value.");
+                var computationResult = computeMethod.Invoke(null, new object[] {n})
+                        ?? throw new InvalidOperationException("The computation should return a value.");
                 if (computationResult is bool result)
                 {
                     return result ? 1 : 0;
@@ -43,6 +52,7 @@ namespace MGR.PortableObject.Parsing
                 return (int) computationResult;
             };
         }
+
         private CSharpCompilation CreateCompilation(string pluralForm)
         {
             var syntaxTree = CSharpSyntaxTree.ParseText(pluralForm);
@@ -63,7 +73,6 @@ namespace MGR.PortableObject.Parsing
             };
             return references;
         }
-
         private Assembly CompileAndLoadAssembly(CSharpCompilation compilation)
         {
             using var ms = new MemoryStream();
@@ -73,7 +82,6 @@ namespace MGR.PortableObject.Parsing
             var assembly = Assembly.Load(ms.ToArray());
             return assembly;
         }
-
         private void ThrowExceptionIfCompilationFailure(EmitResult result)
         {
             if (!result.Success)
@@ -88,7 +96,7 @@ namespace MGR.PortableObject.Parsing
                     var errorNumber = firstError.Id;
                     var errorDescription = firstError.GetMessage();
                     var firstErrorMessage = $"{errorNumber}: {errorDescription};";
-                    throw new Exception($"Compilation failed, first error is: {firstErrorMessage}");
+                    throw new InvalidOperationException($"Compilation failed, first error is: {firstErrorMessage}");
                 }
             }
         }

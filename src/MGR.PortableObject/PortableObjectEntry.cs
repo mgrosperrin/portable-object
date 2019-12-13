@@ -1,4 +1,6 @@
-﻿namespace MGR.PortableObject
+﻿using System;
+
+namespace MGR.PortableObject
 {
     /// <summary>
     /// Default implementation of an entry with translations.
@@ -28,27 +30,35 @@
             Key = portableObjectKey;
             _pluralForm = pluralForm;
             _translations = translations;
+            if (translations.Length > _pluralForm.NumberOfPluralForms)
+            {
+                throw new InvalidOperationException("The number of translations is superior to the number of plural forms.");
+            }
             HasTranslation = translations.Length > 0;
         }
 
-        /// <inheritdoc />
-        public string GetTranslation()
+        private string GetsTheIdForPluralForm(int pluralForm)
         {
-            return HasTranslation ? _translations[0] : Key.Id;
-        }
-
-        /// <inheritdoc />
-        public string GetPluralTranslation(int numberOfItems)
-        {
-            if (!HasTranslation)
+            if (pluralForm == 0)
             {
                 return Key.Id;
             }
 
-            var pluralForm = _pluralForm.GetPluralFormForNumber(numberOfItems);
+            return Key.IdPlural ?? Key.Id;
+        }
+
+        /// <inheritdoc />
+        public string GetTranslation(int quantity)
+        {
+            var pluralForm = _pluralForm.GetPluralFormForQuantity(quantity);
+            if (!HasTranslation)
+            {
+                return GetsTheIdForPluralForm(pluralForm);
+            }
+
             if (_translations.Length < pluralForm)
             {
-                return Key.Id;
+                return GetsTheIdForPluralForm(pluralForm);
             }
 
             return _translations[pluralForm];
