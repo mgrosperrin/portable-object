@@ -90,7 +90,7 @@ stages:
           - task: DotNetCoreCLI@2
             inputs:
               command: push
-              packagesToPush: 'nuget/*.nupkg'
+              packagesToPush: 'packages/*.nupkg'
               nuGetFeedType: external
               publishFeedCredentials: 'MyGet - mgrosperrin'
 
@@ -116,6 +116,6 @@ stages:
           - task: DotNetCoreCLI@2
             inputs:
               command: push
-              packagesToPush: 'nuget/*.snupkg'
+              packagesToPush: 'packages/*.snupkg'
               nuGetFeedType: external
               publishFeedCredentials: 'NuGet - MGR.PortableObject'
