@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
+    <PropertyGroup>
+        <Description>MGR.PortableObject is a package containing the .NET implementation of PortableObject (GNU gettext) catalog.</Description>
+    </PropertyGroup>
 
 </Project>

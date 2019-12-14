@@ -7,6 +7,8 @@ variables:
   value: Release
 - name: GitVersion.SemVer
   value: 1.0.0
+- name: ArtifactName
+  value: packages
 
 stages:
 - stage: BuildLibraries
@@ -59,10 +61,10 @@ stages:
         flattenFolders: true
 
     - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact: packages'
+      displayName: 'Publish Artifact: $(ArtifactName)'
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/nuget'
-        ArtifactName: packages
+        ArtifactName: $(ArtifactName)
       condition: |
         and(
           succeeded(),
@@ -71,3 +73,50 @@ stages:
             eq(variables['Build.SourceBranch'], 'refs/heads/master'),
             eq(variables['Build.SourceBranch'], 'refs/heads/dev'),
             startsWith(variables['Build.SourceBranch'], 'refs/heads/release-')))
+
+- stage: PublishPrerelease
+  displayName: Publish the prerelease packages
+  dependsOn: BuildLibraries
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
+  jobs:
+  - deployment: MyGet
+    displayName: Deploy the packages to MyGet
+    pool:
+      name: Azure Pipelines
+      vmImage: windows-2019
+    environment: MyGet
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: NuGetCommand@2
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Pipeline.Workspace)/$(ArtifactName)/*.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: 'MyGet - mgrosperrin'
+
+- stage: PublishRelease
+  displayName: Publish the release packages
+  dependsOn: BuildLibraries
+  condition: |
+    or(
+      eq(variables['Build.SourceBranch'], 'refs/heads/master'),
+      startsWith(variables['Build.SourceBranch'], 'refs/heads/release-'))
+  jobs:
+  - deployment: NuGet
+    displayName: Deploy the packages to NuGet.org
+    pool:
+      name: Azure Pipelines
+      vmImage: windows-2019
+    environment: NuGet
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: NuGetCommand@2
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Pipeline.Workspace)/$(ArtifactName)/*.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: 'MyGet - mgrosperrin'

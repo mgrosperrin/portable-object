@@ -1,19 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-  </PropertyGroup>
+    <PropertyGroup>
+        <Description>MGR.PortableObject.Parsing is a package containing a .NET parser of PortableObject (GNU gettext) files.</Description>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\MGR.PortableObject\MGR.PortableObject.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\MGR.PortableObject\MGR.PortableObject.csproj" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Extensions\" />
-    <Folder Include="Properties\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.4.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.4.0" />
+    </ItemGroup>
 
 </Project>
