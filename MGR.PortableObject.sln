@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{5247975E
 	ProjectSection(SolutionItems) = preProject
 		build\azure-pipelines.yml = build\azure-pipelines.yml
 		Directory.Build.props = Directory.Build.props
+		build\generate_docs.ps1 = build\generate_docs.ps1
 		global.json = global.json
 	EndProjectSection
 EndProject
@@ -31,7 +32,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MGR.PortableObject.UnitTest
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "docs", "docs\docs.csproj", "{78AD8D7D-585E-4D96-A033-6ECA91FC8728}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MGR.PortableObject", "src\MGR.PortableObject\MGR.PortableObject.csproj", "{DBC4E3F3-0D44-4DAF-98E6-544BF7C7646C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MGR.PortableObject", "src\MGR.PortableObject\MGR.PortableObject.csproj", "{DBC4E3F3-0D44-4DAF-98E6-544BF7C7646C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
