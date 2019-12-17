@@ -102,7 +102,7 @@ stages:
 
 - stage: PublishPrerelease
   displayName: Publish the prerelease packages
-  dependsOn: BuildLibraries
+  dependsOn: Build
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
   jobs:
   - deployment: MyGet
@@ -124,7 +124,7 @@ stages:
 
 - stage: PublishRelease
   displayName: Publish the release packages
-  dependsOn: BuildLibraries
+  dependsOn: Build
   condition: |
     or(
       eq(variables['Build.SourceBranch'], 'refs/heads/master'),
