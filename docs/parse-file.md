@@ -1,20 +1,8 @@
 ﻿# Parse a PortableObject file
 
-## Installation and usage
+## Create a parser
 
-You can install the NuGet package from the package manager console:
-
-``` powershell
-PM> Install-Package MGR.ParsingObject.Parsing
-```
-
-or via the .NET Core CLI
-
-```
-$ dotnet add package MGR.ParsingObject.Parsing
-```
-
-Then create a parser:
+Create a parser:
 
 ``` csharp
 using MGR.PortableObject.Parsing;
@@ -23,30 +11,13 @@ using MGR.PortableObject.Parsing;
 ``` csharp
 TextReader textReader = ...:
 var parser = new PortableObjectParser();
+```
 
+## Parse a file
+
+You can parse a .po file by passing a `TextReader`
+to the parser.
+
+``` csharp
 var catalog = await parser.ParseAsync(textReader, culture);
-```
-
-You can then try to retrieve entries from the catalog.
-The entries are retrievable via a key composed of an id and an optional context:
-
-``` csharp
-var key = new PortableObjectKey(id);
-// or
-var key = new PortableObjectKey(id, context);
-```
-
-``` csharp
-var entry = catalog.GetEntry(key);
-```
-
-The entry can now be used to retrieve the translation:
-
-``` csharp
-// has the entry translation defined?
-var hasTranslation = entry.HasTranslation;
-// gets the primary translation (or the key if the entry has no translation)
-var translation = entry.GetTranslation();
-// gets plural form of the translation
-var pluralForm = entry.GetTranslation(quantity);
 ```

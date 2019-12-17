@@ -5,4 +5,10 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
+    <ItemGroup>
+        <None Include="docfx.json" />
+        <None Include="toc.yml" />
+        <None Include="**/*.md" />
+    </ItemGroup>
+
 </Project>
