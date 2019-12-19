@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MGR.PortableObject.Comments;
 
 namespace MGR.PortableObject.Parsing
 {
@@ -17,6 +18,7 @@ namespace MGR.PortableObject.Parsing
         private readonly PluralFormParser _pluralFormParser = new PluralFormParser();
         private readonly CatalogBuilder _catalogBuilder;
         private readonly List<List<string>> _currentTranslations = new List<List<string>>();
+        private readonly List<PortableObjectCommentBase> _comments = new List<PortableObjectCommentBase>();
 
         private string? _currentContext;
         private string _currentId = string.Empty;
@@ -32,6 +34,7 @@ namespace MGR.PortableObject.Parsing
         {
             if (line.StartsWith(CommentPrefix))
             {
+                ParseAndAppendComment(line);
                 return;
             }
             if (line.StartsWithQuote())
@@ -71,6 +74,27 @@ namespace MGR.PortableObject.Parsing
             }
         }
 
+        private void ParseAndAppendComment(string line)
+        {
+            var comment = ParseComment(line);
+            _comments.Add(comment);
+        }
+
+        private PortableObjectCommentBase ParseComment(string line)
+        {
+            var commentPrefix = line.Substring(0, 2);
+            var commentContent = line.Substring(2).TrimStart(' ');
+            return commentPrefix switch
+            {
+                "#." => new ProgrammerComment(commentContent),
+                "#:" => new ReferencesComment(commentContent),
+                "#," => new FlagsComment(commentContent),
+                "#|" => new PreviousUntranslatedStringComment(commentContent),
+                "# " => new TranslatorComment(commentContent),
+                _ => throw new ArgumentOutOfRangeException(nameof(line), "Unable to find the type of comment.")
+            };
+        }
+
 
         private void AppendLineContent(string lineContent)
         {
@@ -104,12 +128,14 @@ namespace MGR.PortableObject.Parsing
                     entry = new PortableObjectEntry(
                         new PortableObjectKey(_currentContext, _currentId, _currentIdPlural),
                         _catalogBuilder.PluralForm,
-                        _currentTranslations.Select(lines => string.Join("", lines)).ToArray());
+                        _currentTranslations.Select(lines => string.Join("", lines)).ToArray(),
+                        _comments.ToList());
                 }
             }
             _currentId = string.Empty;
             _currentContext = null;
             _currentTranslations.Clear();
+            _comments.Clear();
             return entry;
         }
 

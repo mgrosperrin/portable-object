@@ -1,4 +1,7 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using MGR.PortableObject.Comments;
 
 namespace MGR.PortableObject
 {
@@ -14,6 +17,7 @@ namespace MGR.PortableObject
         public PortableObjectKey Key { get; }
         public bool HasTranslation { get; } = false;
         public int Count { get; } = 0;
+        public IEnumerable<PortableObjectCommentBase> Comments { get; } = Enumerable.Empty<PortableObjectCommentBase>();
 
         public string GetTranslation(int quantity)
         {

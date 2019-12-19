@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using MGR.PortableObject.Comments;
 
 namespace MGR.PortableObject
 {
@@ -19,15 +21,20 @@ namespace MGR.PortableObject
         /// <inheritdoc />
         public int Count => _translations.Length;
 
+        /// <inheritdoc />
+        public IEnumerable<PortableObjectCommentBase> Comments { get; }
+
         /// <summary>
         /// Create a new instance of a <see cref="PortableObjectEntry"/>.
         /// </summary>
         /// <param name="portableObjectKey">The <see cref="PortableObjectKey"/> of the entry.</param>
         /// <param name="pluralForm">The plural form computation.</param>
         /// <param name="translations">The translations of the entry.</param>
-        public PortableObjectEntry(PortableObjectKey portableObjectKey, IPluralForm pluralForm, string[] translations)
+        /// <param name="comments">The comments of the entry.</param>
+        public PortableObjectEntry(PortableObjectKey portableObjectKey, IPluralForm pluralForm, string[] translations, IEnumerable<PortableObjectCommentBase> comments)
         {
             Key = portableObjectKey;
+            Comments = comments;
             _pluralForm = pluralForm;
             _translations = translations;
             if (translations.Length > _pluralForm.NumberOfPluralForms)
