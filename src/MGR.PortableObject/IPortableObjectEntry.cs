@@ -1,4 +1,7 @@
-﻿namespace MGR.PortableObject
+﻿using System.Collections.Generic;
+using MGR.PortableObject.Comments;
+
+namespace MGR.PortableObject
 {
     /// <summary>
     /// Represents an entry of the PortableObject file.
@@ -19,6 +22,11 @@
         /// Gets the number of translations in this entry.
         /// </summary>
         int Count { get; }
+
+        /// <summary>
+        /// Gets the comments for the current entry.
+        /// </summary>
+        IEnumerable<PortableObjectCommentBase> Comments { get; }
 
         /// <summary>
         /// Gets the translation for the specified quantity from the current entry.

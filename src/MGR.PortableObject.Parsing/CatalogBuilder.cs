@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using MGR.PortableObject.Comments;
 
 namespace MGR.PortableObject.Parsing
 {
@@ -50,9 +51,9 @@ namespace MGR.PortableObject.Parsing
             return _entryBuilder;
         }
 
-        internal void AddEntry(PortableObjectKey key, List<string> translations)
+        internal void AddEntry(PortableObjectKey key, List<string> translations, IEnumerable<PortableObjectCommentBase> comments)
         {
-            var entry = new PortableObjectEntry(key, PluralForm, translations.ToArray());
+            var entry = new PortableObjectEntry(key, PluralForm, translations.ToArray(), comments);
             AddEntry(entry);
         }
 

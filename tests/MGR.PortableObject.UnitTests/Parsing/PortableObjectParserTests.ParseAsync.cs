@@ -1,7 +1,9 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using MGR.PortableObject.Comments;
 using MGR.PortableObject.Parsing;
 using Xunit;
 
@@ -14,128 +16,135 @@ namespace MGR.PortableObject.UnitTests.Parsing
             [Fact]
             public async Task ParseReturnsSimpleEntry()
             {
-                var entries = await ParseText("SimpleEntry");
+                var catalog = await ParseText("SimpleEntry");
 
-                Assert.Equal(1, entries.Count);
+                Assert.Equal(1, catalog.Count);
 
-                var translation = entries.GetEntry(new PortableObjectKey("Unknown system error"));
+                var entry = catalog.GetEntry(new PortableObjectKey("Unknown system error"));
 
-                Assert.True(translation.HasTranslation);
-                Assert.Equal(1, translation.Count);
-                Assert.Equal("Erreur système inconnue", translation.GetTranslation());
+                Assert.True(entry.HasTranslation);
+                Assert.Equal(1, entry.Count);
+                Assert.Equal("Erreur système inconnue", entry.GetTranslation());
             }
 
             [Fact]
             public async Task ParseIgnoresEntryWithoutTranslation()
             {
-                var entries = await ParseText("EntryWithoutTranslation");
+                var catalog = await ParseText("EntryWithoutTranslation");
 
-                Assert.Equal(0, entries.Count);
+                Assert.Equal(0, catalog.Count);
             }
 
             [Fact]
             public async Task ParseIgnoresPoeditHeader()
             {
-                var entries = await ParseText("PoeditHeader");
+                var catalog = await ParseText("PoeditHeader");
 
-                Assert.Equal(1, entries.Count);
-                var translation = entries.GetEntry(new PortableObjectKey("Unknown system error"));
-                Assert.True(translation.HasTranslation);
-                Assert.Equal(1, translation.Count);
-                Assert.Equal("Erreur système inconnue", translation.GetTranslation());
+                Assert.Equal(1, catalog.Count);
+                var entry = catalog.GetEntry(new PortableObjectKey("Unknown system error"));
+                Assert.True(entry.HasTranslation);
+                Assert.Equal(1, entry.Count);
+                Assert.Equal("Erreur système inconnue", entry.GetTranslation());
             }
 
             [Fact]
             public async Task ParseSetsContext()
             {
-                var entries = await ParseText("EntryWithContext");
+                var catalog = await ParseText("EntryWithContext");
 
-                var translation = entries.GetEntry(new PortableObjectKey("MGR.Localization", "Unknown system error"));
-                Assert.True(translation.HasTranslation);
-                Assert.Equal("Erreur système inconnue", translation.GetTranslation());
+                var entry = catalog.GetEntry(new PortableObjectKey("MGR.Localization", "Unknown system error"));
+                Assert.True(entry.HasTranslation);
+                Assert.Equal("Erreur système inconnue", entry.GetTranslation());
             }
 
             [Fact]
             public async Task ParseIgnoresComments()
             {
-                var entries = await ParseText("EntryWithComments");
+                var catalog = await ParseText("EntryWithComments");
 
-                var translation = entries.GetEntry(new PortableObjectKey("MGR.Localization", "Unknown system error"));
-                Assert.True(translation.HasTranslation);
-                Assert.Equal("Erreur système inconnue", translation.GetTranslation());
+                var entry = catalog.GetEntry(new PortableObjectKey("MGR.Localization", "Unknown system error"));
+                Assert.True(entry.HasTranslation);
+                Assert.Equal("Erreur système inconnue", entry.GetTranslation());
+                Assert.Equal(2, entry.Comments.Count());
+                var firstComment = entry.Comments.First();
+                Assert.IsType<PreviousUntranslatedStringComment>(firstComment);
+                Assert.Equal("msgctxt previous-context", firstComment.Text);
+                var secondComment = entry.Comments.Skip(1).First();
+                Assert.IsType<PreviousUntranslatedStringComment>(secondComment);
+                Assert.Equal("msgid previous-untranslated-string", secondComment.Text);
             }
 
             [Fact]
             public async Task ParseOnlyTrimsLeadingAndTrailingQuotes()
             {
-                var entries = await ParseText("EntryWithQuotes");
+                var catalog = await ParseText("EntryWithQuotes");
 
-                var translation = entries.GetEntry(new PortableObjectKey("\"{0}\""));
-                Assert.True(translation.HasTranslation);
-                Assert.Equal("\"{0}\"", translation.GetTranslation());
+                var entry = catalog.GetEntry(new PortableObjectKey("\"{0}\""));
+                Assert.True(entry.HasTranslation);
+                Assert.Equal("\"{0}\"", entry.GetTranslation());
             }
 
             [Fact]
             public async Task ParseHandleUnclosedQuote()
             {
-                var entries = await ParseText("EntryWithUnclosedQuote");
+                var catalog = await ParseText("EntryWithUnclosedQuote");
 
-                var translation = entries.GetEntry(new PortableObjectKey("", "Foo \"{0}\""));
-                Assert.True(translation.HasTranslation);
-                Assert.Equal("Foo \"{0}\"", translation.GetTranslation());
+                var entry = catalog.GetEntry(new PortableObjectKey("", "Foo \"{0}\""));
+                Assert.True(entry.HasTranslation);
+                Assert.Equal("Foo \"{0}\"", entry.GetTranslation());
             }
 
             [Fact]
             public async Task ParseHandlesMultilineEntry()
             {
-                var entries = await ParseText("EntryWithMultilineText");
+                var catalog = await ParseText("EntryWithMultilineText");
 
-                var translation = entries.GetEntry(new PortableObjectKey(
+                var entry = catalog.GetEntry(new PortableObjectKey(
                     "Here is an example of how one might continue a very long string\nfor the common case the string represents multi-line output."));
-                Assert.True(translation.HasTranslation);
+                Assert.True(entry.HasTranslation);
                 Assert.Equal(
                     "Ceci est un exemple de comment une traduction très longue peut continuer\npour le cas commun où le texte serait sur plusieurs lignes.",
-                    translation.GetTranslation());
+                    entry.GetTranslation());
             }
 
             [Fact]
             public async Task ParsePreservesEscapedCharacters()
             {
-                var entries = await ParseText("EntryWithEscapedCharacters");
+                var catalog = await ParseText("EntryWithEscapedCharacters");
 
-                var translation = entries.GetEntry(new PortableObjectKey("Line:\t\"{0}\"\n"));
-                Assert.True(translation.HasTranslation);
-                Assert.Equal("Ligne :\t\"{0}\"\n", translation.GetTranslation());
+                var entry = catalog.GetEntry(new PortableObjectKey("Line:\t\"{0}\"\n"));
+                Assert.True(entry.HasTranslation);
+                Assert.Equal("Ligne :\t\"{0}\"\n", entry.GetTranslation());
             }
 
             [Fact]
             public async Task ParseReadsPluralTranslations()
             {
-                var entries = await ParseText("EntryWithPlural");
+                var catalog = await ParseText("EntryWithPlural");
 
-                var translation = entries.GetEntry(new PortableObjectKey(null, "book", "books"));
-                Assert.True(translation.HasTranslation);
-                Assert.Equal("livres", translation.GetTranslation(0));
-                Assert.Equal("livre", translation.GetTranslation(1));
-                Assert.Equal("livres", translation.GetTranslation(2));
+                var entry = catalog.GetEntry(new PortableObjectKey(null, "book", "books"));
+                Assert.True(entry.HasTranslation);
+                Assert.Equal("livres", entry.GetTranslation(0));
+                Assert.Equal("livre", entry.GetTranslation(1));
+                Assert.Equal("livres", entry.GetTranslation(2));
             }
 
             [Fact]
             public async Task ParseReadsMultipleEntries()
             {
-                var entries = await ParseText("MultipleEntries");
+                var catalog = await ParseText("MultipleEntries");
 
-                Assert.Equal(2, entries.Count);
+                Assert.Equal(2, catalog.Count);
 
-                var translation = entries.GetEntry(new PortableObjectKey("MGR.File", "File {0} does not exist"));
+                var entry = catalog.GetEntry(new PortableObjectKey("MGR.File", "File {0} does not exist"));
 
-                Assert.True(translation.HasTranslation);
-                Assert.Equal("Le fichier {0} n'existe pas", translation.GetTranslation());
+                Assert.True(entry.HasTranslation);
+                Assert.Equal("Le fichier {0} n'existe pas", entry.GetTranslation());
 
-                translation = entries.GetEntry(new PortableObjectKey("MGR.Directory", "Directory {0} does not exist"));
+                entry = catalog.GetEntry(new PortableObjectKey("MGR.Directory", "Directory {0} does not exist"));
 
-                Assert.True(translation.HasTranslation);
-                Assert.Equal("Le répertoire {0} n'existe pas", translation.GetTranslation());
+                Assert.True(entry.HasTranslation);
+                Assert.Equal("Le répertoire {0} n'existe pas", entry.GetTranslation());
             }
 
             private async Task<ICatalog> ParseText(string resourceName)
