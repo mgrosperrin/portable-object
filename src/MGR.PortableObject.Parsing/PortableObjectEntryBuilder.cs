@@ -20,6 +20,7 @@ namespace MGR.PortableObject.Parsing
         private readonly List<List<string>> _currentTranslations = new List<List<string>>();
         private readonly List<PortableObjectCommentBase> _comments = new List<PortableObjectCommentBase>();
 
+        private bool _headerHasBeenParsed;
         private string? _currentContext;
         private string _currentId = string.Empty;
         private string? _currentIdPlural;
@@ -30,11 +31,11 @@ namespace MGR.PortableObject.Parsing
             _catalogBuilder = catalogBuilder;
         }
 
-        public void AppendLine(string line)
+        public void AppendLine(string line, List<string> errors)
         {
             if (line.StartsWith(CommentPrefix))
             {
-                ParseAndAppendComment(line);
+                ParseAndAppendComment(line, errors);
                 return;
             }
             if (line.StartsWithQuote())
@@ -48,6 +49,7 @@ namespace MGR.PortableObject.Parsing
             if (keyAndValue.Length != 2)
             {
                 return;
+                //TODO
             }
 
             var content = keyAndValue[1].Trim().TrimQuote().Unescape();
@@ -71,28 +73,39 @@ namespace MGR.PortableObject.Parsing
                     _currentTranslations.Add(newTranslations);
                     _lastLineType = LineType.Translation;
                     break;
+                //TODO
             }
         }
 
-        private void ParseAndAppendComment(string line)
+        private void ParseAndAppendComment(string line, List<string> errors)
         {
-            var comment = ParseComment(line);
-            _comments.Add(comment);
+            var comment = ParseComment(line, errors);
+            if (comment != null)
+            {
+                _comments.Add(comment);
+            }
         }
 
-        private PortableObjectCommentBase ParseComment(string line)
+        private PortableObjectCommentBase? ParseComment(string line, List<string> errors)
         {
             var commentPrefix = line.Substring(0, 2);
             var commentContent = line.Substring(2).TrimStart(' ');
-            return commentPrefix switch
+            switch (commentPrefix)
             {
-                "#." => new ProgrammerComment(commentContent),
-                "#:" => new ReferencesComment(commentContent),
-                "#," => new FlagsComment(commentContent),
-                "#|" => new PreviousUntranslatedStringComment(commentContent),
-                "# " => new TranslatorComment(commentContent),
-                _ => throw new ArgumentOutOfRangeException(nameof(line), "Unable to find the type of comment.")
-            };
+                case "#.":
+                    return new ProgrammerComment(commentContent);
+                case "#:":
+                    return new ReferencesComment(commentContent);
+                case "#,":
+                    return new FlagsComment(commentContent);
+                case "#|":
+                    return new PreviousUntranslatedStringComment(commentContent);
+                case "# ":
+                    return new TranslatorComment(commentContent);
+                default:
+                    errors.Add("Unable to find the type of comment.");
+                    return null;
+            }
         }
 
 
@@ -112,16 +125,17 @@ namespace MGR.PortableObject.Parsing
                 case LineType.Translation:
                     _currentTranslations[_currentTranslations.Count - 1].Add(lineContent);
                     break;
+                //TODO
             }
         }
-        public IPortableObjectEntry? BuildEntry()
+        public IPortableObjectEntry? BuildEntry(List<string> errors)
         {
             IPortableObjectEntry? entry = null;
             if (_currentTranslations.Count > 0)
             {
                 if (string.IsNullOrEmpty(_currentId))
                 {
-                    ParseHeader();
+                    ParseHeader(errors);
                 }
                 else
                 {
@@ -139,18 +153,26 @@ namespace MGR.PortableObject.Parsing
             return entry;
         }
 
-        private void ParseHeader()
+        private void ParseHeader(List<string> errors)
         {
-            var headers = _currentTranslations[0]
-                .Where(line => !string.IsNullOrEmpty(line))
-                .Select(line => line.Split(HeaderSeparator))
-                .ToLookup(header => header[0], header => header[1]);
-
-            if (headers.Contains(HeaderPluralForms))
+            if (!_headerHasBeenParsed)
             {
-                var pluralFormsHeader = headers[HeaderPluralForms];
-                var pluralForm = _pluralFormParser.Parse(pluralFormsHeader.First());
-                _catalogBuilder.SetPluralForm(pluralForm);
+                _headerHasBeenParsed = true;
+                var headers = _currentTranslations[0]
+                    .Where(line => !string.IsNullOrEmpty(line))
+                    .Select(line => line.Split(HeaderSeparator))
+                    .ToLookup(header => header[0], header => header[1]);
+
+                if (headers.Contains(HeaderPluralForms))
+                {
+                    var pluralFormsHeader = headers[HeaderPluralForms];
+                    var pluralForm = _pluralFormParser.Parse(pluralFormsHeader.First());
+                    _catalogBuilder.SetPluralForm(pluralForm);
+                }
+            }
+            else
+            {
+                errors.Add("The header has already been parsed. An entry should have a non empty id.");
             }
         }
 

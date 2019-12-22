@@ -31,9 +31,9 @@ namespace MGR.PortableObject.Parsing
         /// Build the catalog with the currently parsed lines.
         /// </summary>
         /// <returns>A catalog</returns>
-        public ICatalog BuildCatalog()
+        public ICatalog BuildCatalog(List<string> errors)
         {
-            var finalEntry = _entryBuilder.BuildEntry();
+            var finalEntry = _entryBuilder.BuildEntry(errors);
             if (finalEntry != null)
             {
                 AddEntry(finalEntry);
