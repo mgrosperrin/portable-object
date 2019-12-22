@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -24,15 +23,15 @@ namespace MGR.PortableObject.Parsing
         /// <returns>The translations parsed from the file content.</returns>
         public async Task<ParsingResult> ParseAsync(TextReader textReader, CultureInfo culture)
         {
-            var errors = new List<string>();
-            var catalogBuilder = new CatalogBuilder(culture);
+            var parsingContext = new ParsingContext(textReader);
+            var catalogBuilder = new CatalogBuilder(parsingContext, culture);
             var entryBuilder = catalogBuilder.GetEntryBuilder();
             string? line;
-            while ((line = await textReader.ReadLineAsync()) != null)
+            while ((line = await parsingContext.ReadLineAsync()) != null)
             {
                 if (string.IsNullOrEmpty(line))
                 {
-                    var entry = entryBuilder.BuildEntry(errors);
+                    var entry = entryBuilder.BuildEntry();
                     if (entry != null)
                     {
                         catalogBuilder.AddEntry(entry);
@@ -40,11 +39,11 @@ namespace MGR.PortableObject.Parsing
                 }
                 else
                 {
-                    entryBuilder.AppendLine(line, errors);
+                    entryBuilder.AppendLine(line, parsingContext);
                 }
             }
-            var catalog = catalogBuilder.BuildCatalog(errors);
-            var parsingResult = new ParsingResult(catalog, errors);
+            var catalog = catalogBuilder.BuildCatalog();
+            var parsingResult = new ParsingResult(catalog, parsingContext.GetErrors());
             return parsingResult;
         }
     }

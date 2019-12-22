@@ -1,6 +1,6 @@
 #  translator-comments
 #. extracted-comments
-#! reference…
+#! reference:123
 #, flag
 
 #| msgctxt previous-context

@@ -13,19 +13,22 @@ namespace MGR.PortableObject.Parsing
         /// </summary>
         /// <param name="catalog"></param>
         /// <param name="errors"></param>
-        public ParsingResult(ICatalog catalog, IEnumerable<string> errors)
+        public ParsingResult(ICatalog catalog, IEnumerable<ParsingError> errors)
         {
             Catalog = catalog;
             Errors = errors;
         }
+
         /// <summary>
         /// Indicates if the parsing has errors.
         /// </summary>
         public bool HasErrors => Errors.Any();
+
         /// <summary>
         /// Gets the errors (if any) of the parsing.
         /// </summary>
-        public IEnumerable<string> Errors { get; }
+        public IEnumerable<ParsingError> Errors { get; }
+
         /// <summary>
         /// Gets the <see cref="ICatalog"/> resulting of the parsing.
         /// </summary>

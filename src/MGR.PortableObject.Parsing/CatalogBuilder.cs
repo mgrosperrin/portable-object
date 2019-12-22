@@ -1,13 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using MGR.PortableObject.Comments;
 
 namespace MGR.PortableObject.Parsing
 {
-    /// <summary>
-    /// Represents a builder for a <see cref="ICatalog"/>.
-    /// </summary>
     internal class CatalogBuilder
     {
         private readonly CultureInfo _culture;
@@ -15,25 +11,18 @@ namespace MGR.PortableObject.Parsing
 
         private readonly List< IPortableObjectEntry> _entries = new List<IPortableObjectEntry>();
 
-        /// <summary>
-        /// Creates a new builder.
-        /// </summary>
-        public CatalogBuilder(CultureInfo culture)
+        public CatalogBuilder(ParsingContext parsingContext, CultureInfo culture)
         {
             _culture = culture;
             PluralForm = PluralForms.For(culture);
-            _entryBuilder = new PortableObjectEntryBuilder(this);
+            _entryBuilder = new PortableObjectEntryBuilder(this, parsingContext);
         }
 
         internal IPluralForm PluralForm { get; private set; }
 
-        /// <summary>
-        /// Build the catalog with the currently parsed lines.
-        /// </summary>
-        /// <returns>A catalog</returns>
-        public ICatalog BuildCatalog(List<string> errors)
+        public ICatalog BuildCatalog()
         {
-            var finalEntry = _entryBuilder.BuildEntry(errors);
+            var finalEntry = _entryBuilder.BuildEntry();
             if (finalEntry != null)
             {
                 AddEntry(finalEntry);
@@ -49,12 +38,6 @@ namespace MGR.PortableObject.Parsing
         public PortableObjectEntryBuilder GetEntryBuilder()
         {
             return _entryBuilder;
-        }
-
-        internal void AddEntry(PortableObjectKey key, List<string> translations, IEnumerable<PortableObjectCommentBase> comments)
-        {
-            var entry = new PortableObjectEntry(key, PluralForm, translations.ToArray(), comments);
-            AddEntry(entry);
         }
 
         internal void AddEntry(IPortableObjectEntry portableObjectEntry)

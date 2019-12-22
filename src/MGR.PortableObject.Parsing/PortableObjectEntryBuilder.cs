@@ -17,6 +17,7 @@ namespace MGR.PortableObject.Parsing
 
         private readonly PluralFormParser _pluralFormParser = new PluralFormParser();
         private readonly CatalogBuilder _catalogBuilder;
+        private readonly ParsingContext _parsingContext;
         private readonly List<List<string>> _currentTranslations = new List<List<string>>();
         private readonly List<PortableObjectCommentBase> _comments = new List<PortableObjectCommentBase>();
 
@@ -24,18 +25,19 @@ namespace MGR.PortableObject.Parsing
         private string? _currentContext;
         private string _currentId = string.Empty;
         private string? _currentIdPlural;
-        private LineType _lastLineType = LineType.Unknown;
+        private LineType _lastLineType = LineType.Header;
 
-        public PortableObjectEntryBuilder(CatalogBuilder catalogBuilder)
+        public PortableObjectEntryBuilder(CatalogBuilder catalogBuilder, ParsingContext parsingContext)
         {
             _catalogBuilder = catalogBuilder;
+            _parsingContext = parsingContext;
         }
 
-        public void AppendLine(string line, List<string> errors)
+        public void AppendLine(string line, ParsingContext parsingContext)
         {
             if (line.StartsWith(CommentPrefix))
             {
-                ParseAndAppendComment(line, errors);
+                ParseAndAppendComment(line, parsingContext);
                 return;
             }
             if (line.StartsWithQuote())
@@ -48,8 +50,8 @@ namespace MGR.PortableObject.Parsing
             var keyAndValue = line.Split(null, 2);
             if (keyAndValue.Length != 2)
             {
+                _parsingContext.AddError("The line should contains a key and a content separated by a space.");
                 return;
-                //TODO
             }
 
             var content = keyAndValue[1].Trim().TrimQuote().Unescape();
@@ -73,20 +75,22 @@ namespace MGR.PortableObject.Parsing
                     _currentTranslations.Add(newTranslations);
                     _lastLineType = LineType.Translation;
                     break;
-                //TODO
+                default:
+                    _parsingContext.AddError("Unable to determine the current line meaning.");
+                    break;
             }
         }
 
-        private void ParseAndAppendComment(string line, List<string> errors)
+        private void ParseAndAppendComment(string line, ParsingContext parsingContext)
         {
-            var comment = ParseComment(line, errors);
+            var comment = ParseComment(line, parsingContext);
             if (comment != null)
             {
                 _comments.Add(comment);
             }
         }
 
-        private PortableObjectCommentBase? ParseComment(string line, List<string> errors)
+        private PortableObjectCommentBase? ParseComment(string line, ParsingContext parsingContext)
         {
             var commentPrefix = line.Substring(0, 2);
             var commentContent = line.Substring(2).TrimStart(' ');
@@ -103,7 +107,7 @@ namespace MGR.PortableObject.Parsing
                 case "# ":
                     return new TranslatorComment(commentContent);
                 default:
-                    errors.Add("Unable to find the type of comment.");
+                    parsingContext.AddError("Unable to find the type of comment.");
                     return null;
             }
         }
@@ -125,17 +129,21 @@ namespace MGR.PortableObject.Parsing
                 case LineType.Translation:
                     _currentTranslations[_currentTranslations.Count - 1].Add(lineContent);
                     break;
-                //TODO
+                case LineType.Header:
+                    break;
+                default:
+                    _parsingContext.AddError("The current line has no previous meaning.");
+                    break;
             }
         }
-        public IPortableObjectEntry? BuildEntry(List<string> errors)
+        public IPortableObjectEntry? BuildEntry()
         {
             IPortableObjectEntry? entry = null;
             if (_currentTranslations.Count > 0)
             {
                 if (string.IsNullOrEmpty(_currentId))
                 {
-                    ParseHeader(errors);
+                    ParseHeader();
                 }
                 else
                 {
@@ -153,7 +161,7 @@ namespace MGR.PortableObject.Parsing
             return entry;
         }
 
-        private void ParseHeader(List<string> errors)
+        private void ParseHeader()
         {
             if (!_headerHasBeenParsed)
             {
@@ -166,20 +174,29 @@ namespace MGR.PortableObject.Parsing
                 if (headers.Contains(HeaderPluralForms))
                 {
                     var pluralFormsHeader = headers[HeaderPluralForms];
-                    var pluralForm = _pluralFormParser.Parse(pluralFormsHeader.First());
-                    _catalogBuilder.SetPluralForm(pluralForm);
+                    try
+                    {
+                        var pluralForm = _pluralFormParser.Parse(pluralFormsHeader.First());
+                        _catalogBuilder.SetPluralForm(pluralForm);
+                    }
+                    catch (InvalidOperationException exception)
+                    {
+                        _parsingContext.AddError(
+                            exception.Message
+                            );
+                    }
                 }
             }
             else
             {
-                errors.Add("The header has already been parsed. An entry should have a non empty id.");
+                _parsingContext.AddError("The header has already been parsed. An entry should have a non empty id.");
             }
         }
 
         private enum LineType
         {
-            Unknown = 0,
-            Context = 1,
+            Header = 5,
+            Context = 10,
             Id = 20,
             IdPlural = 21,
             Translation = 30
