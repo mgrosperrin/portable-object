@@ -20,9 +20,9 @@ namespace MGR.PortableObject.Parsing
         }
 
         /// <summary>
-        /// Indicates if the parsing has errors.
+        /// Returns <code>true</code> if the parsing succeeded, <code>false</code> otherwise.
         /// </summary>
-        public bool HasErrors => Errors.Any();
+        public bool Success => !Errors.Any();
 
         /// <summary>
         /// Gets the errors (if any) of the parsing.
