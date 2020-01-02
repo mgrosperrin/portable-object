@@ -149,6 +149,14 @@ stages:
               versionSpec:
               checkLatest: true
           - task: NuGetCommand@2
+            displayName: Publish the main NuGet packages
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Pipeline.Workspace)/$(Artifact.Packages.Name)/*.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: 'NuGet - MGR.PortableObject'
+          - task: NuGetCommand@2
+            displayName: Publish the symbols NuGet packages
             inputs:
               command: 'push'
               packagesToPush: '$(Pipeline.Workspace)/$(Artifact.Packages.Name)/*.snupkg'
