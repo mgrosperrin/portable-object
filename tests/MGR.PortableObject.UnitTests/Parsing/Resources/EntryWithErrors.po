@@ -1,0 +1,10 @@
+#  translator-comments
+#. extracted-comments
+#! reference:123
+#, flag
+
+#| msgctxt previous-context
+#| msgid previous-untranslated-string
+msgctxt "MGR.Localization"
+msgid "Unknown system error"
+msgstr "Erreur système inconnue"

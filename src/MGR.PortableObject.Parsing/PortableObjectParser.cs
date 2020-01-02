@@ -21,13 +21,13 @@ namespace MGR.PortableObject.Parsing
         /// <param name="textReader">The <see cref="TextReader"/> representing the content of the file.</param>
         /// <param name="culture">The culture of the PortableObject file.</param>
         /// <returns>The translations parsed from the file content.</returns>
-        public async Task<ICatalog> ParseAsync(TextReader textReader, CultureInfo culture)
+        public async Task<ParsingResult> ParseAsync(TextReader textReader, CultureInfo culture)
         {
-            var catalogBuilder = new CatalogBuilder(culture);
-            catalogBuilder.SetPluralForm(PluralForms.For(culture));
+            var parsingContext = new ParsingContext(textReader);
+            var catalogBuilder = new CatalogBuilder(parsingContext, culture);
             var entryBuilder = catalogBuilder.GetEntryBuilder();
             string? line;
-            while ((line = await textReader.ReadLineAsync()) != null)
+            while ((line = await parsingContext.ReadLineAsync()) != null)
             {
                 if (string.IsNullOrEmpty(line))
                 {
@@ -39,11 +39,12 @@ namespace MGR.PortableObject.Parsing
                 }
                 else
                 {
-                    entryBuilder.AppendLine(line);
+                    entryBuilder.AppendLine(line, parsingContext);
                 }
             }
             var catalog = catalogBuilder.BuildCatalog();
-            return catalog;
+            var parsingResult = new ParsingResult(catalog, parsingContext.GetErrors());
+            return parsingResult;
         }
     }
 }

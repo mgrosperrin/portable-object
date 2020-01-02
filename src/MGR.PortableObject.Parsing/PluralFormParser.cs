@@ -11,13 +11,20 @@ namespace MGR.PortableObject.Parsing
 {
     internal class PluralFormParser
     {
-        private const char PluralFormsPartSeparator = ';';
+        private const char PartsSeparator = ';';
+        private const char NbPluralPartSeparator = '=';
+        private const string PluralFuncPrefix = "plural=";
+
+        private const string PluralFormsNamespace = "Plural";
+        private const string PluralFormsClass = "Form";
+        private const string PluralFormsMethod = "Compute";
 
         public IPluralForm Parse(string pluralFormsHeader)
         {
-            var pluralFormsPart = pluralFormsHeader.Split(PluralFormsPartSeparator);
-            var pluralNumber = int.Parse(pluralFormsPart[0].Split('=')[1]);
-            var pluralFormFunc = pluralFormsPart[1].Replace("plural=", string.Empty);
+            var pluralFormsParts = pluralFormsHeader.Split(PartsSeparator);
+            var nbPluralsParts = pluralFormsParts[0].Split(NbPluralPartSeparator);
+            var pluralNumber = int.Parse(nbPluralsParts[1]);
+            var pluralFormFunc = pluralFormsParts[1].Replace(PluralFuncPrefix, string.Empty);
             var method = GetCompiledMethod(pluralFormFunc);
 
             return new FuncBasedPluralForm(pluralNumber, method);
@@ -25,11 +32,11 @@ namespace MGR.PortableObject.Parsing
 
         private Func<int, int> GetCompiledMethod(string pluralForm)
         {
-            var code = $@"namespace Plural
+            var code = $@"namespace {PluralFormsNamespace}
 {{
-    public static class Form
+    public static class {PluralFormsClass}
     {{
-        public static object Compute(int n)
+        public static object {PluralFormsMethod}(int n)
         {{
             return {pluralForm};
         }}
@@ -38,21 +45,20 @@ namespace MGR.PortableObject.Parsing
 ";
             var c = CreateCompilation(code);
             var assembly = CompileAndLoadAssembly(c);
-            var pluralFormType = assembly.GetType("Plural.Form");
-            var computeMethod = pluralFormType.GetMethod("Compute", BindingFlags.Static|BindingFlags.Public) ?? throw new InvalidOperationException("Unable to find the generated compute method.");
+            var pluralFormType = assembly.GetType($"{PluralFormsNamespace}.{PluralFormsClass}");
+            var computeMethod = pluralFormType.GetMethod(PluralFormsMethod, BindingFlags.Static | BindingFlags.Public) ?? throw new InvalidOperationException("Unable to find the generated compute method.");
             return n =>
             {
-                var computationResult = computeMethod.Invoke(null, new object[] {n})
+                var computationResult = computeMethod.Invoke(null, new object[] { n })
                         ?? throw new InvalidOperationException("The computation should return a value.");
                 if (computationResult is bool result)
                 {
                     return result ? 1 : 0;
                 }
 
-                return (int) computationResult;
+                return (int)computationResult;
             };
         }
-
         private CSharpCompilation CreateCompilation(string pluralForm)
         {
             var syntaxTree = CSharpSyntaxTree.ParseText(pluralForm);

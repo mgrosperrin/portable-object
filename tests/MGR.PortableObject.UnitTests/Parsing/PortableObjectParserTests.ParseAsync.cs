@@ -16,8 +16,9 @@ namespace MGR.PortableObject.UnitTests.Parsing
             [Fact]
             public async Task ParseReturnsSimpleEntry()
             {
-                var catalog = await ParseText("SimpleEntry");
-
+                var parsingResult = await ParseText("SimpleEntry");
+                Assert.True(parsingResult.Success);
+                var catalog = parsingResult.Catalog;
                 Assert.Equal(1, catalog.Count);
 
                 var entry = catalog.GetEntry(new PortableObjectKey("Unknown system error"));
@@ -30,7 +31,9 @@ namespace MGR.PortableObject.UnitTests.Parsing
             [Fact]
             public async Task ParseIgnoresEntryWithoutTranslation()
             {
-                var catalog = await ParseText("EntryWithoutTranslation");
+                var parsingResult = await ParseText("EntryWithoutTranslation");
+                Assert.True(parsingResult.Success);
+                var catalog = parsingResult.Catalog;
 
                 Assert.Equal(0, catalog.Count);
             }
@@ -38,7 +41,9 @@ namespace MGR.PortableObject.UnitTests.Parsing
             [Fact]
             public async Task ParseIgnoresPoeditHeader()
             {
-                var catalog = await ParseText("PoeditHeader");
+                var parsingResult = await ParseText("PoeditHeader");
+                Assert.True(parsingResult.Success);
+                var catalog = parsingResult.Catalog;
 
                 Assert.Equal(1, catalog.Count);
                 var entry = catalog.GetEntry(new PortableObjectKey("Unknown system error"));
@@ -50,7 +55,9 @@ namespace MGR.PortableObject.UnitTests.Parsing
             [Fact]
             public async Task ParseSetsContext()
             {
-                var catalog = await ParseText("EntryWithContext");
+                var parsingResult = await ParseText("EntryWithContext");
+                Assert.True(parsingResult.Success);
+                var catalog = parsingResult.Catalog;
 
                 var entry = catalog.GetEntry(new PortableObjectKey("MGR.Localization", "Unknown system error"));
                 Assert.True(entry.HasTranslation);
@@ -60,7 +67,9 @@ namespace MGR.PortableObject.UnitTests.Parsing
             [Fact]
             public async Task ParseIgnoresComments()
             {
-                var catalog = await ParseText("EntryWithComments");
+                var parsingResult = await ParseText("EntryWithComments");
+                Assert.True(parsingResult.Success);
+                var catalog = parsingResult.Catalog;
 
                 var entry = catalog.GetEntry(new PortableObjectKey("MGR.Localization", "Unknown system error"));
                 Assert.True(entry.HasTranslation);
@@ -77,7 +86,9 @@ namespace MGR.PortableObject.UnitTests.Parsing
             [Fact]
             public async Task ParseOnlyTrimsLeadingAndTrailingQuotes()
             {
-                var catalog = await ParseText("EntryWithQuotes");
+                var parsingResult = await ParseText("EntryWithQuotes");
+                Assert.True(parsingResult.Success);
+                var catalog = parsingResult.Catalog;
 
                 var entry = catalog.GetEntry(new PortableObjectKey("\"{0}\""));
                 Assert.True(entry.HasTranslation);
@@ -87,7 +98,9 @@ namespace MGR.PortableObject.UnitTests.Parsing
             [Fact]
             public async Task ParseHandleUnclosedQuote()
             {
-                var catalog = await ParseText("EntryWithUnclosedQuote");
+                var parsingResult = await ParseText("EntryWithUnclosedQuote");
+                Assert.True(parsingResult.Success);
+                var catalog = parsingResult.Catalog;
 
                 var entry = catalog.GetEntry(new PortableObjectKey("", "Foo \"{0}\""));
                 Assert.True(entry.HasTranslation);
@@ -97,7 +110,9 @@ namespace MGR.PortableObject.UnitTests.Parsing
             [Fact]
             public async Task ParseHandlesMultilineEntry()
             {
-                var catalog = await ParseText("EntryWithMultilineText");
+                var parsingResult = await ParseText("EntryWithMultilineText");
+                Assert.True(parsingResult.Success);
+                var catalog = parsingResult.Catalog;
 
                 var entry = catalog.GetEntry(new PortableObjectKey(
                     "Here is an example of how one might continue a very long string\nfor the common case the string represents multi-line output."));
@@ -110,7 +125,9 @@ namespace MGR.PortableObject.UnitTests.Parsing
             [Fact]
             public async Task ParsePreservesEscapedCharacters()
             {
-                var catalog = await ParseText("EntryWithEscapedCharacters");
+                var parsingResult = await ParseText("EntryWithEscapedCharacters");
+                Assert.True(parsingResult.Success);
+                var catalog = parsingResult.Catalog;
 
                 var entry = catalog.GetEntry(new PortableObjectKey("Line:\t\"{0}\"\n"));
                 Assert.True(entry.HasTranslation);
@@ -120,7 +137,9 @@ namespace MGR.PortableObject.UnitTests.Parsing
             [Fact]
             public async Task ParseReadsPluralTranslations()
             {
-                var catalog = await ParseText("EntryWithPlural");
+                var parsingResult = await ParseText("EntryWithPlural");
+                Assert.True(parsingResult.Success);
+                var catalog = parsingResult.Catalog;
 
                 var entry = catalog.GetEntry(new PortableObjectKey(null, "book", "books"));
                 Assert.True(entry.HasTranslation);
@@ -132,7 +151,9 @@ namespace MGR.PortableObject.UnitTests.Parsing
             [Fact]
             public async Task ParseReadsMultipleEntries()
             {
-                var catalog = await ParseText("MultipleEntries");
+                var parsingResult = await ParseText("MultipleEntries");
+                Assert.True(parsingResult.Success);
+                var catalog = parsingResult.Catalog;
 
                 Assert.Equal(2, catalog.Count);
 
@@ -147,7 +168,20 @@ namespace MGR.PortableObject.UnitTests.Parsing
                 Assert.Equal("Le répertoire {0} n'existe pas", entry.GetTranslation());
             }
 
-            private async Task<ICatalog> ParseText(string resourceName)
+            [Fact]
+            public async Task ParseHandleErrors()
+            {
+                var parsingResult = await ParseText("EntryWithErrors");
+
+                Assert.False(parsingResult.Success);
+                Assert.Single(parsingResult.Errors);
+                var error = parsingResult.Errors.First();
+                Assert.Equal(3, error.LineNumber);
+                Assert.Equal("Unable to find the type of comment.", error.Message);
+                Assert.Equal("#! reference:123", error.LineContent);
+            }
+
+            private async Task<ParsingResult> ParseText(string resourceName)
             {
                 var fullResourceName = $"MGR.PortableObject.UnitTests.Parsing.Resources.{resourceName}.po";
                 var parser = new PortableObjectParser();
