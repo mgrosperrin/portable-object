@@ -115,6 +115,10 @@ stages:
       runOnce:
         deploy:
           steps:
+          - task: NuGetToolInstaller@1
+            inputs:
+              versionSpec:
+              checkLatest: true
           - task: NuGetCommand@2
             inputs:
               command: 'push'
@@ -140,6 +144,10 @@ stages:
       runOnce:
         deploy:
           steps:
+          - task: NuGetToolInstaller@1
+            inputs:
+              versionSpec:
+              checkLatest: true
           - task: NuGetCommand@2
             inputs:
               command: 'push'
