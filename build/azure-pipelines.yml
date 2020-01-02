@@ -145,7 +145,7 @@ stages:
               command: 'push'
               packagesToPush: '$(Pipeline.Workspace)/$(Artifact.Packages.Name)/*.snupkg'
               nuGetFeedType: 'external'
-              publishFeedCredentials: 'MyGet - mgrosperrin'
+              publishFeedCredentials: 'NuGet - MGR.PortableObject'
   - deployment: Documentation
     displayName: Deploy the documentation to GitHub Pages
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
