@@ -1,12 +1,12 @@
-name: MGR.PortableObject - $(GitVersion.SemVer)$(rev:.r)
+name: MGR.PortableObject - $(GitVersion.FullSemVer)$(rev:.r)
 
 variables:
 - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
   value: 1
 - name: System.Configuration
   value: Release
-- name: GitVersion.SemVer
-  value: 1.0.0
+- name: GitVersion.FullSemVer
+  value: 'Computing'
 - name: Artifact.Packages.Name
   value: packages
 - name: Artifact.Documentation.Name
@@ -28,16 +28,6 @@ stages:
       displayName: 'Get version from Git'
       inputs:
         preferBundledVersion: false
-      condition: |
-        and(
-          succeeded(),
-          ne(variables['Build.Reason'], 'PullRequest'),
-          or(
-            eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-            eq(variables['Build.SourceBranch'], 'refs/heads/dev'),
-            startsWith(variables['Build.SourceBranch'], 'refs/heads/release-')
-          )
-        )
     - task: UseDotNet@2
       inputs:
         packageType: 'sdk'
@@ -45,7 +35,7 @@ stages:
     - task: DotNetCoreCLI@2
       displayName: 'dotnet build'
       inputs:
-        arguments: '-c $(System.Configuration) -p:Version=$(GitVersion.SemVer)'
+        arguments: '-c $(System.Configuration) -p:Version=$(GitVersion.FullSemVer)'
     - task: DotNetCoreCLI@2
       displayName: 'dotnet test'
       inputs:
@@ -64,14 +54,6 @@ stages:
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/nuget'
         ArtifactName: $(Artifact.Packages.Name)
-      condition: |
-        and(
-          succeeded(),
-          ne(variables['Build.Reason'], 'PullRequest'),
-          or(
-            eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-            eq(variables['Build.SourceBranch'], 'refs/heads/dev'),
-            startsWith(variables['Build.SourceBranch'], 'refs/heads/release-')))
   - job: BuildDocumentation
     displayName: Build the documentation
     pool:
@@ -94,11 +76,6 @@ stages:
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Artifact.Documentation.FilePath)'
         ArtifactName: $(Artifact.Documentation.Name)
-      condition: |
-          and(
-            succeeded(),
-            ne(variables['Build.Reason'], 'PullRequest'),
-            eq(variables['Build.SourceBranch'], 'refs/heads/master'))
 
 - stage: PublishPrerelease
   displayName: Publish the prerelease packages
@@ -130,9 +107,13 @@ stages:
   displayName: Publish the release packages
   dependsOn: Build
   condition: |
-    or(
-      eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-      startsWith(variables['Build.SourceBranch'], 'refs/heads/release-'))
+    and(
+      or(
+        eq(variables['Build.SourceBranch'], 'refs/heads/master'),
+        startsWith(variables['Build.SourceBranch'], 'refs/heads/release-')
+      ),
+      ne(variables['GitVersion.BuildMetadata'], '')
+    )
   jobs:
   - deployment: NuGet
     displayName: Deploy the packages to NuGet.org
