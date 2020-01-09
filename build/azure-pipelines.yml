@@ -112,7 +112,7 @@ stages:
         eq(variables['Build.SourceBranch'], 'refs/heads/master'),
         startsWith(variables['Build.SourceBranch'], 'refs/heads/release-')
       ),
-      ne(variables['GitVersion.BuildMetadata'], '')
+      eq(variables['GitVersion.BuildMetadata'], '')
     )
   jobs:
   - deployment: NuGet
