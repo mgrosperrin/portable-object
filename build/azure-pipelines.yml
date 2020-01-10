@@ -5,8 +5,12 @@ variables:
   value: 1
 - name: System.Configuration
   value: Release
+- name: System.Debug
+  value: true
 - name: GitVersion.FullSemVer
   value: 'Computing'
+- name: GitVersion.BuildMetadata
+  value: ''
 - name: Artifact.Packages.Name
   value: packages
 - name: Artifact.Documentation.Name
@@ -93,10 +97,12 @@ stages:
         deploy:
           steps:
           - task: NuGetToolInstaller@1
+            displayName: Install the latest NuGet tool
             inputs:
               versionSpec:
               checkLatest: true
           - task: NuGetCommand@2
+            displayName: Publish the packages to MyGet
             inputs:
               command: 'push'
               packagesToPush: '$(Pipeline.Workspace)/$(Artifact.Packages.Name)/*.nupkg'
@@ -126,6 +132,7 @@ stages:
         deploy:
           steps:
           - task: NuGetToolInstaller@1
+            displayName: Install the latest NuGet tool
             inputs:
               versionSpec:
               checkLatest: true
@@ -145,7 +152,11 @@ stages:
               publishFeedCredentials: 'NuGet - MGR.PortableObject'
   - deployment: Documentation
     displayName: Deploy the documentation to GitHub Pages
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+    condition: |
+      and(
+        eq(variables['Build.SourceBranch'], 'refs/heads/master'),
+        eq(variables['GitVersion.BuildMetadata'], '')
+      )
     pool:
       name: Azure Pipelines
       vmImage: windows-2019
