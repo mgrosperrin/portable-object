@@ -1,12 +1,22 @@
 name: MGR.PortableObject - $(GitVersion.FullSemVer)$(rev:.r)
 
+trigger:
+  branches:
+    include:
+    - '*'
+    - refs/tags/*
+
 variables:
 - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
   value: 1
 - name: System.Configuration
   value: Release
+- name: System.Debug
+  value: true
 - name: GitVersion.FullSemVer
   value: 'Computing'
+- name: GitVersion.BuildMetadata
+  value: 'AZE'
 - name: Artifact.Packages.Name
   value: packages
 - name: Artifact.Documentation.Name
