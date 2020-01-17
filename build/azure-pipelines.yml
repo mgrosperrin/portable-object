@@ -76,12 +76,24 @@ stages:
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/nuget'
         ArtifactName: $(Artifact.Packages.Name)
+    - task: CmdLine@2
+      name: Version
+      displayName: Sets the build variables to make them available to others jobs
+      inputs:
+        script: |
+          echo "##vso[task.setvariable variable=FullSemVer;isOutput=true]$(Version.FullSemVer)
+          echo "##vso[task.setvariable variable=BuildMetadata;isOutput=true]$(Version.BuildMetadata)
   - job: BuildDocumentation
     displayName: Build the documentation
     dependsOn: ComputeVersion
     pool:
       name: Azure Pipelines
       vmImage: windows-2019
+    variables:
+    - name: Version.FullSemVer
+      value: $[ dependencies.ComputeVersion.outputs['Version.FullSemVer'] ]
+    - name: Version.BuildMetadata
+      value: $[ dependencies.ComputeVersion.outputs['Version.BuildMetadata'] ]
     steps:
     - task: PowerShell@2
       displayName: 'Build documentation site'
@@ -99,6 +111,13 @@ stages:
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Artifact.Documentation.FilePath)'
         ArtifactName: $(Artifact.Documentation.Name)
+    - task: CmdLine@2
+      name: Version
+      displayName: Sets the build variables to make them available to others jobs
+      inputs:
+        script: |
+          echo "##vso[task.setvariable variable=FullSemVer;isOutput=true]$(Version.FullSemVer)
+          echo "##vso[task.setvariable variable=BuildMetadata;isOutput=true]$(Version.BuildMetadata)
   - deployment: PublishMyGet
     displayName: Deploy the packages to MyGet
     pool:
@@ -135,7 +154,7 @@ stages:
           eq(variables['Build.SourceBranch'], 'refs/heads/master'),
           startsWith(variables['Build.SourceBranch'], 'refs/heads/release-')
         ),
-        eq(dependencies.ComputeVersion.outputs['Version.BuildMetadata'], '')
+        eq(dependencies.BuildLibraries.outputs['Version.BuildMetadata'], '')
       )
     environment: NuGet
     strategy:
@@ -160,7 +179,7 @@ stages:
     variables:
     - group: GitHub_Access_Token
     - name: Version.FullSemVer
-      value: $[ dependencies.ComputeVersion.outputs['Version.FullSemVer'] ]
+      value: $[ dependencies.BuildDocumentation.outputs['Version.FullSemVer'] ]
     - name: GitHub.RepositoryName
       value: mgrosperrin/portable-object
     - name: GitHub.GH-Pages.BranchName
@@ -174,7 +193,7 @@ stages:
     condition: |
       and(
         eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-        eq(dependencies.ComputeVersion.outputs['Version.BuildMetadata'], '')
+        eq(dependencies.BuildDocumentation.outputs['Version.BuildMetadata'], '')
       )
     pool:
       name: Azure Pipelines
