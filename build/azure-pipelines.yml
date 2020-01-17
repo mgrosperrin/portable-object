@@ -50,15 +50,16 @@ stages:
       value: $[ dependencies.ComputeVersion.outputs['Version.BuildMetadata'] ]
     steps:
     - task: UseDotNet@2
+      displayName: 'Install the .NET Core SDK'
       inputs:
         packageType: 'sdk'
         useGlobalJson: true
     - task: DotNetCoreCLI@2
-      displayName: 'dotnet build'
+      displayName: 'Build & Pack the libraries'
       inputs:
         arguments: '-c $(System.Configuration) -p:Version=$(Version.FullSemVer)'
     - task: DotNetCoreCLI@2
-      displayName: 'dotnet test'
+      displayName: 'Test the libraries'
       inputs:
         command: test
         projects: 'tests/**Tests/*.csproj'
@@ -128,16 +129,13 @@ stages:
       name: Azure Pipelines
       vmImage: windows-2019
     dependsOn: BuildLibraries
-    variables:
-    - name: Version.BuildMetadata
-      value: $[ dependencies.ComputeVersion.outputs['Version.BuildMetadata'] ]
     condition: |
       and(
         or(
           eq(variables['Build.SourceBranch'], 'refs/heads/master'),
           startsWith(variables['Build.SourceBranch'], 'refs/heads/release-')
         ),
-        eq(variables['Version.BuildMetadata'], '')
+        eq(dependencies.ComputeVersion.outputs['Version.BuildMetadata'], '')
       )
     environment: NuGet
     strategy:
@@ -161,8 +159,6 @@ stages:
     dependsOn: BuildDocumentation
     variables:
     - group: GitHub_Access_Token
-    - name: Version.BuildMetadata
-      value: $[ dependencies.ComputeVersion.outputs['Version.BuildMetadata'] ]
     - name: Version.FullSemVer
       value: $[ dependencies.ComputeVersion.outputs['Version.FullSemVer'] ]
     - name: GitHub.RepositoryName
@@ -178,7 +174,7 @@ stages:
     condition: |
       and(
         eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-        eq(variables['Version.BuildMetadata'], '')
+        eq(dependencies.ComputeVersion.outputs['Version.BuildMetadata'], '')
       )
     pool:
       name: Azure Pipelines
