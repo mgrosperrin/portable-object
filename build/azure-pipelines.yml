@@ -114,7 +114,6 @@ stages:
     pool:
       name: Azure Pipelines
       vmImage: windows-2019
-    dependsOn: BuildLibraries
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
     environment: MyGet
     strategy:
@@ -150,7 +149,6 @@ stages:
     pool:
       name: Azure Pipelines
       vmImage: windows-2019
-    dependsOn: BuildLibraries
     environment: NuGet
     strategy:
       runOnce:
