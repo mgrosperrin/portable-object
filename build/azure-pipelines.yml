@@ -65,7 +65,7 @@ stages:
       inputs:
         command: test
         projects: 'tests/**Tests/*.csproj'
-        arguments: '-c $(System.Configuration) --no-build  /p:CollectCoverage=true /p:CoverletOutput=_BuildReports\Coverage\ /p:CoverletOutputFormat=cobertura /p:Exclude="[xunit.*]*%2c[*]JetBrains.*%2c[*Tests*]*"'
+        arguments: '-c $(System.Configuration) --no-build  --collect "Code coverage'
     - task: CopyFiles@2
       displayName: 'Copy Files to artifacts folder'
       inputs:
@@ -90,6 +90,8 @@ stages:
     - name: Version.BuildMetadata
       value: $[ dependencies.ComputeVersion.outputs['Version.BuildMetadata'] ]
     steps:
+    - checkout: self
+      fetchDepth: 1
     - task: PowerShell@2
       displayName: 'Build documentation site'
       inputs:
