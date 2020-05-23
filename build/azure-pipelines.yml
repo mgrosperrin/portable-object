@@ -66,7 +66,7 @@ stages:
         command: test
         projects: 'tests/**Tests/*.csproj'
         arguments: '-c $(System.Configuration) --no-build  --collect "Code coverage" /p:CollectCoverage=true /p:CoverletOutput=_BuildReports\Coverage\ /p:CoverletOutputFormat=cobertura /p:Exclude="[xunit.*]*%2c[*]JetBrains.*%2c[*Tests*]*"'
-    - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@1
+    - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
       displayName: 'Generate code coverage report'
       inputs:
         reports: '**/*.IntegrationTests/_BuildReports/Coverage/  coverage.netcoreapp3.1.cobertura.xml;**/*.UnitTests/_BuildReports/Coverage/  coverage.netcoreapp3.1.cobertura.xml'
