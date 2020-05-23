@@ -17,8 +17,8 @@ variables:
   value: documentation_site.zip
 
 stages:
-- stage: BuildAndPublish
-  displayName: 'Build & publish the libraries & documentation'
+- stage: Build
+  displayName: 'Build the libraries & documentation'
   jobs:
   - job: ComputeVersion
     displayName: Compute the version
@@ -49,11 +49,13 @@ stages:
     - name: Version.BuildMetadata
       value: $[ dependencies.ComputeVersion.outputs['Version.BuildMetadata'] ]
     steps:
+    - checkout: self
+      fetchDepth: 1
     - task: UseDotNet@2
       displayName: 'Install the .NET Core SDK'
       inputs:
         packageType: 'sdk'
-        useGlobalJson: true
+        version: '3.1.x'
     - task: DotNetCoreCLI@2
       displayName: 'Build & Pack the libraries'
       inputs:
@@ -63,7 +65,7 @@ stages:
       inputs:
         command: test
         projects: 'tests/**Tests/*.csproj'
-        arguments: '-c $(System.Configuration) --no-build  /p:CollectCoverage=true /p:CoverletOutput=_BuildReports\Coverage\ /p:CoverletOutputFormat=cobertura /p:Exclude="[xunit.*]*%2c[*]JetBrains.*%2c[*Tests*]*"'
+        arguments: '-c $(System.Configuration) --no-build  --collect "Code coverage"'
     - task: CopyFiles@2
       displayName: 'Copy Files to artifacts folder'
       inputs:
@@ -76,13 +78,6 @@ stages:
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/nuget'
         ArtifactName: $(Artifact.Packages.Name)
-    - task: CmdLine@2
-      name: Version
-      displayName: Sets the build variables to make them available to others jobs
-      inputs:
-        script: |
-          echo "##vso[task.setvariable variable=FullSemVer;isOutput=true]$(Version.FullSemVer)
-          echo "##vso[task.setvariable variable=BuildMetadata;isOutput=true]$(Version.BuildMetadata)
   - job: BuildDocumentation
     displayName: Build the documentation
     dependsOn: ComputeVersion
@@ -95,6 +90,8 @@ stages:
     - name: Version.BuildMetadata
       value: $[ dependencies.ComputeVersion.outputs['Version.BuildMetadata'] ]
     steps:
+    - checkout: self
+      fetchDepth: 1
     - task: PowerShell@2
       displayName: 'Build documentation site'
       inputs:
@@ -111,19 +108,16 @@ stages:
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Artifact.Documentation.FilePath)'
         ArtifactName: $(Artifact.Documentation.Name)
-    - task: CmdLine@2
-      name: Version
-      displayName: Sets the build variables to make them available to others jobs
-      inputs:
-        script: |
-          echo "##vso[task.setvariable variable=FullSemVer;isOutput=true]$(Version.FullSemVer)
-          echo "##vso[task.setvariable variable=BuildMetadata;isOutput=true]$(Version.BuildMetadata)
+- stage: PublishPrerelease
+  displayName: Publish the prerelease packages
+  dependsOn: Build
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
+  jobs:
   - deployment: PublishMyGet
     displayName: Deploy the packages to MyGet
     pool:
       name: Azure Pipelines
       vmImage: windows-2019
-    dependsOn: BuildLibraries
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
     environment: MyGet
     strategy:
@@ -142,20 +136,23 @@ stages:
               packagesToPush: '$(Pipeline.Workspace)/$(Artifact.Packages.Name)/*.nupkg'
               nuGetFeedType: 'external'
               publishFeedCredentials: 'MyGet - mgrosperrin'
-  - deployment: PublishNuGet
-    displayName: Deploy the packages to NuGet.org
-    pool:
-      name: Azure Pipelines
-      vmImage: windows-2019
-    dependsOn: BuildLibraries
-    condition: |
+- stage: PublishRelease
+  displayName: 'Publish the release packages'
+  dependsOn: Build
+  condition: |
       and(
         or(
           eq(variables['Build.SourceBranch'], 'refs/heads/master'),
           startsWith(variables['Build.SourceBranch'], 'refs/heads/release-')
         ),
-        eq(dependencies.BuildLibraries.outputs['Version.BuildMetadata'], '')
+        eq(dependencies.Build.ComputeVersion.outputs['Version.BuildMetadata'], '')
       )
+  jobs:
+  - deployment: PublishNuGet
+    displayName: Deploy the packages to NuGet.org
+    pool:
+      name: Azure Pipelines
+      vmImage: windows-2019
     environment: NuGet
     strategy:
       runOnce:
@@ -175,11 +172,15 @@ stages:
               publishFeedCredentials: 'NuGet - MGR.PortableObject'
   - deployment: PublishDocumentation
     displayName: Deploy the documentation to GitHub Pages
-    dependsOn: BuildDocumentation
+    condition: |
+      and(
+        eq(variables['Build.SourceBranch'], 'refs/heads/master'),
+        eq(dependencies.Build.ComputeVersion.outputs['Version.BuildMetadata'], '')
+      )
     variables:
     - group: GitHub_Access_Token
     - name: Version.FullSemVer
-      value: $[ dependencies.BuildDocumentation.outputs['Version.FullSemVer'] ]
+      value: $[ dependencies.Build.ComputeVersion.outputs['Version.FullSemVer'] ]
     - name: GitHub.RepositoryName
       value: mgrosperrin/portable-object
     - name: GitHub.GH-Pages.BranchName
@@ -190,11 +191,6 @@ stages:
       value: $(Pipeline.Workspace)/$(Artifact.Documentation.Name)/$(Artifact.Documentation.FilePath)
     - name: Path.Documentation.Expansion.FullPath
       value: $(Pipeline.Workspace)\temp_expansion_folder
-    condition: |
-      and(
-        eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-        eq(dependencies.BuildDocumentation.outputs['Version.BuildMetadata'], '')
-      )
     pool:
       name: Azure Pipelines
       vmImage: windows-2019
