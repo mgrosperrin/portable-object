@@ -49,6 +49,8 @@ stages:
     - name: Version.BuildMetadata
       value: $[ dependencies.ComputeVersion.outputs['Version.BuildMetadata'] ]
     steps:
+    - checkout: self
+      fetchDepth: 0
     - task: UseDotNet@2
       displayName: 'Install the .NET Core SDK'
       inputs:
