@@ -65,7 +65,20 @@ stages:
       inputs:
         command: test
         projects: 'tests/**Tests/*.csproj'
-        arguments: '-c $(System.Configuration) --no-build  --collect "Code coverage"'
+        arguments: '-c $(System.Configuration) --no-build  --collect "Code coverage" /p:CollectCoverage=true /p:CoverletOutput=_BuildReports\Coverage\ /p:CoverletOutputFormat=cobertura /p:Exclude="[xunit.*]*%2c[*]JetBrains.*%2c[*Tests*]*"'
+    - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@1
+      displayName: 'Generate code coverage report'
+      inputs:
+        reports: '**/*.IntegrationTests/_BuildReports/Coverage/  coverage.netcoreapp3.1.cobertura.xml;**/*.UnitTests/_BuildReports/Coverage/  coverage.netcoreapp3.1.cobertura.xml'
+        targetdir: '$(Build.ArtifactStagingDirectory)/Coverage'
+      condition: succeededOrFailed()
+    - task: PublishCodeCoverageResults@1
+      displayName: 'Publish code coverage from $(Build.ArtifactStagingDirectory)/Coverage/  Cobertura.xml'
+      inputs:
+        codeCoverageTool: Cobertura
+        summaryFileLocation: '$(Build.ArtifactStagingDirectory)/Coverage/Cobertura.xml'
+        reportDirectory: '$(Build.ArtifactStagingDirectory)/Coverage'
+      condition: succeededOrFailed()
     - task: CopyFiles@2
       displayName: 'Copy Files to artifacts folder'
       inputs:
@@ -145,7 +158,7 @@ stages:
           eq(variables['Build.SourceBranch'], 'refs/heads/master'),
           startsWith(variables['Build.SourceBranch'], 'refs/heads/release-')
         ),
-        eq(dependencies.Build.ComputeVersion.outputs['Version.BuildMetadata'], '')
+        eq(stageDependencies.Build.ComputeVersion.outputs['Version.BuildMetadata'], '')
       )
   jobs:
   - deployment: PublishNuGet
@@ -175,12 +188,12 @@ stages:
     condition: |
       and(
         eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-        eq(dependencies.Build.ComputeVersion.outputs['Version.BuildMetadata'], '')
+        eq(stageDependencies.Build.ComputeVersion.outputs['Version.BuildMetadata'], '')
       )
     variables:
     - group: GitHub_Access_Token
     - name: Version.FullSemVer
-      value: $[ dependencies.Build.ComputeVersion.outputs['Version.FullSemVer'] ]
+      value: $[ stageDependencies.Build.ComputeVersion.outputs['Version.FullSemVer'] ]
     - name: GitHub.RepositoryName
       value: mgrosperrin/portable-object
     - name: GitHub.GH-Pages.BranchName
