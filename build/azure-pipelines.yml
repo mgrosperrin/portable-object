@@ -65,11 +65,11 @@ stages:
       inputs:
         command: test
         projects: 'tests/**Tests/*.csproj'
-        arguments: '-c $(System.Configuration) --no-build /p:CollectCoverage=true /p:CoverletOutput=_BuildReports\Coverage\ /p:CoverletOutputFormat=cobertura /p:Exclude="[xunit.*]*%2c[*]JetBrains.*%2c[*Tests*]*"'
+        arguments: '-c $(System.Configuration) --no-build --collect!"XPlat Code Coverage" --settings build/coverlet.runsettings'
     - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
       displayName: 'Generate code coverage report'
       inputs:
-        reports: '**/*.UnitTests/_BuildReports/Coverage/coverage.netcoreapp3.1.cobertura.xml'
+        reports: '**/coverage.cobertura.xml'
         targetdir: '$(Build.ArtifactStagingDirectory)/Coverage'
       condition: succeededOrFailed()
     - task: PublishCodeCoverageResults@1

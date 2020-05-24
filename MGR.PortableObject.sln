@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{5247975E-98D7-4C11-A99C-5C8F1C0D5355}"
 	ProjectSection(SolutionItems) = preProject
 		build\azure-pipelines.yml = build\azure-pipelines.yml
+		build\coverlet.runsettings = build\coverlet.runsettings
 		Directory.Build.props = Directory.Build.props
 		build\generate_docs.ps1 = build\generate_docs.ps1
 		global.json = global.json
