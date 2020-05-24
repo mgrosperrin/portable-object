@@ -65,7 +65,7 @@ stages:
       inputs:
         command: test
         projects: 'tests/**Tests/*.csproj'
-        arguments: '-c $(System.Configuration) --no-build  --collect "Code coverage" /p:CollectCoverage=true /p:CoverletOutput=_BuildReports\Coverage\ /p:CoverletOutputFormat=cobertura /p:Exclude="[xunit.*]*%2c[*]JetBrains.*%2c[*Tests*]*"'
+        arguments: '-c $(System.Configuration) --no-build /p:CollectCoverage=true /p:CoverletOutput=_BuildReports\Coverage\ /p:CoverletOutputFormat=cobertura /p:Exclude="[xunit.*]*%2c[*]JetBrains.*%2c[*Tests*]*"'
     - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
       displayName: 'Generate code coverage report'
       inputs:
@@ -153,16 +153,15 @@ stages:
   displayName: 'Publish the release packages'
   dependsOn: Build
   condition: |
-      and(
         or(
           eq(variables['Build.SourceBranch'], 'refs/heads/master'),
           startsWith(variables['Build.SourceBranch'], 'refs/heads/release-')
-        ),
-        eq(dependencies.Build.ComputeVersion.outputs['Version.BuildMetadata'], '')
-      )
+        )
   jobs:
   - deployment: PublishNuGet
     displayName: Deploy the packages to NuGet.org
+    condition: |
+      eq(stageDependencies.Build.ComputeVersion.outputs['Version.BuildMetadata'], '')
     pool:
       name: Azure Pipelines
       vmImage: windows-2019
@@ -188,12 +187,12 @@ stages:
     condition: |
       and(
         eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-        eq(dependencies.Build.ComputeVersion.outputs['Version.BuildMetadata'], '')
+        eq(stageDependencies.Build.ComputeVersion.outputs['Version.BuildMetadata'], '')
       )
     variables:
     - group: GitHub_Access_Token
     - name: Version.FullSemVer
-      value: $[ dependencies.Build.ComputeVersion.outputs['Version.FullSemVer'] ]
+      value: $[ stageDependencies.Build.ComputeVersion.outputs['Version.FullSemVer'] ]
     - name: GitHub.RepositoryName
       value: mgrosperrin/portable-object
     - name: GitHub.GH-Pages.BranchName
