@@ -69,7 +69,7 @@ stages:
     - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
       displayName: 'Generate code coverage report'
       inputs:
-        reports: '**/*.UnitTests/_BuildReports/Coverage/  coverage.netcoreapp3.1.cobertura.xml'
+        reports: '**/*.UnitTests/_BuildReports/Coverage/coverage.netcoreapp3.1.cobertura.xml'
         targetdir: '$(Build.ArtifactStagingDirectory)/Coverage'
       condition: succeededOrFailed()
     - task: PublishCodeCoverageResults@1
