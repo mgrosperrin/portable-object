@@ -65,11 +65,11 @@ stages:
       inputs:
         command: test
         projects: 'tests/**Tests/*.csproj'
-        arguments: '-c $(System.Configuration) --no-build --collect:"XPlat Code Coverage" --settings build/coverlet.runsettings'
+        arguments: '-c $(System.Configuration) --no-build --collect:"XPlat Code Coverage" --settings build/coverlet.runsettings -r $(Build.ArtifactStagingDirectory)/TempCoverage'
     - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
       displayName: 'Generate code coverage report'
       inputs:
-        reports: '**/coverage.cobertura.xml'
+        reports: '$(Build.ArtifactStagingDirectory)/TempCoverage/coverage.cobertura.xml'
         targetdir: '$(Build.ArtifactStagingDirectory)/Coverage'
       condition: succeededOrFailed()
     - task: PublishCodeCoverageResults@1
