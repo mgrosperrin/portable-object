@@ -69,7 +69,7 @@ stages:
     - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
       displayName: 'Generate code coverage report'
       inputs:
-        reports: '$(Agent.TempDirectory)/coverage.cobertura.xml'
+        reports: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
         targetdir: '$(Build.ArtifactStagingDirectory)/Coverage'
       condition: succeededOrFailed()
     - task: PublishCodeCoverageResults@1
