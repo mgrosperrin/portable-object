@@ -1,0 +1,2 @@
+msgid "Unknown system error"
+msgstr "Erreur système inconnue"

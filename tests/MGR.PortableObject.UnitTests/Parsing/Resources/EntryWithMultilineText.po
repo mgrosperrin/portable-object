@@ -1,0 +1,6 @@
+msgid ""
+"Here is an example of how one might continue a very long string\n"
+"for the common case the string represents multi-line output."
+msgstr ""
+"Ceci est un exemple de comment une traduction très longue peut continuer\n"
+"pour le cas commun où le texte serait sur plusieurs lignes."
