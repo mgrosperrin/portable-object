@@ -1,38 +1,46 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace MGR.PortableObject.Parsing
+namespace MGR.PortableObject.Parsing;
+
+internal partial class PluralFormParser
 {
-    internal class PluralFormParser
+    private const char PartsSeparator = ';';
+    private const char NbPluralPartSeparator = '=';
+    private const string PluralFuncPrefix = "plural=";
+
+    private const string PluralFormsNamespace = "Plural";
+    private const string PluralFormsClass = "Form";
+    private const string PluralFormsMethod = "Compute";
+    private const string PluralFormsPattern = "^[n0-9=!+\\-\\?*/: ]*$";
+    private static readonly Regex PluralFormsRegex = new(PluralFormsPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(1));
+
+    public IPluralForm Parse(string pluralFormsHeader)
     {
-        private const char PartsSeparator = ';';
-        private const char NbPluralPartSeparator = '=';
-        private const string PluralFuncPrefix = "plural=";
+        var pluralFormsParts = pluralFormsHeader.Split(PartsSeparator);
+        var nbPluralsParts = pluralFormsParts[0].Split(NbPluralPartSeparator);
+        var pluralNumber = int.Parse(nbPluralsParts[1]);
+        var pluralFormFunc = pluralFormsParts[1].Replace(PluralFuncPrefix, string.Empty);
+        var method = GetCompiledMethod(pluralFormFunc);
 
-        private const string PluralFormsNamespace = "Plural";
-        private const string PluralFormsClass = "Form";
-        private const string PluralFormsMethod = "Compute";
+        return new FuncBasedPluralForm(pluralNumber, method);
+    }
 
-        public IPluralForm Parse(string pluralFormsHeader)
+    private Func<int, int> GetCompiledMethod(string pluralForm)
+    {
+        if (!PluralFormsRegex.IsMatch(pluralForm))
         {
-            var pluralFormsParts = pluralFormsHeader.Split(PartsSeparator);
-            var nbPluralsParts = pluralFormsParts[0].Split(NbPluralPartSeparator);
-            var pluralNumber = int.Parse(nbPluralsParts[1]);
-            var pluralFormFunc = pluralFormsParts[1].Replace(PluralFuncPrefix, string.Empty);
-            var method = GetCompiledMethod(pluralFormFunc);
-
-            return new FuncBasedPluralForm(pluralNumber, method);
+            throw new ArgumentException($"The plural form should match the Regex '{PluralFormsPattern}'", nameof(pluralForm));
         }
-
-        private Func<int, int> GetCompiledMethod(string pluralForm)
-        {
-            var code = $@"namespace {PluralFormsNamespace}
+        var code = $@"namespace {PluralFormsNamespace}
 {{
     public static class {PluralFormsClass}
     {{
@@ -43,67 +51,66 @@ namespace MGR.PortableObject.Parsing
     }}
 }}
 ";
-            var c = CreateCompilation(code);
-            var assembly = CompileAndLoadAssembly(c);
-            var pluralFormType = assembly.GetType($"{PluralFormsNamespace}.{PluralFormsClass}");
-            var computeMethod = pluralFormType.GetMethod(PluralFormsMethod, BindingFlags.Static | BindingFlags.Public) ?? throw new InvalidOperationException("Unable to find the generated compute method.");
-            return n =>
+        var c = CreateCompilation(code);
+        var assembly = CompileAndLoadAssembly(c);
+        var pluralFormType = assembly.GetType($"{PluralFormsNamespace}.{PluralFormsClass}");
+        var computeMethod = pluralFormType.GetMethod(PluralFormsMethod, BindingFlags.Static | BindingFlags.Public) ?? throw new InvalidOperationException("Unable to find the generated compute method.");
+        return n =>
+        {
+            var computationResult = computeMethod.Invoke(null, [n])
+                    ?? throw new InvalidOperationException("The computation should return a value.");
+            if (computationResult is bool result)
             {
-                var computationResult = computeMethod.Invoke(null, new object[] { n })
-                        ?? throw new InvalidOperationException("The computation should return a value.");
-                if (computationResult is bool result)
-                {
-                    return result ? 1 : 0;
-                }
+                return result ? 1 : 0;
+            }
 
-                return (int)computationResult;
-            };
-        }
-        private CSharpCompilation CreateCompilation(string pluralForm)
+            return (int)computationResult;
+        };
+    }
+    private CSharpCompilation CreateCompilation(string pluralForm)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(pluralForm);
+        string assemblyName = Guid.NewGuid().ToString();
+        var references = GetAssemblyReferences();
+        var compilation = CSharpCompilation.Create(
+            assemblyName,
+            new[] { syntaxTree },
+            references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        return compilation;
+    }
+    private static IEnumerable<MetadataReference> GetAssemblyReferences()
+    {
+        var references = new MetadataReference[]
         {
-            var syntaxTree = CSharpSyntaxTree.ParseText(pluralForm);
-            string assemblyName = Guid.NewGuid().ToString();
-            var references = GetAssemblyReferences();
-            var compilation = CSharpCompilation.Create(
-                assemblyName,
-                new[] { syntaxTree },
-                references,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-            return compilation;
-        }
-        private static IEnumerable<MetadataReference> GetAssemblyReferences()
+            MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location)
+        };
+        return references;
+    }
+    private Assembly CompileAndLoadAssembly(CSharpCompilation compilation)
+    {
+        using var ms = new MemoryStream();
+        var result = compilation.Emit(ms);
+        ThrowExceptionIfCompilationFailure(result);
+        ms.Seek(0, SeekOrigin.Begin);
+        var assembly = Assembly.Load(ms.ToArray());
+        return assembly;
+    }
+    private void ThrowExceptionIfCompilationFailure(EmitResult result)
+    {
+        if (!result.Success)
         {
-            var references = new MetadataReference[]
+            var compilationErrors = result.Diagnostics.Where(diagnostic =>
+                    diagnostic.IsWarningAsError ||
+                    diagnostic.Severity == DiagnosticSeverity.Error)
+                .ToList();
+            if (compilationErrors.Any())
             {
-                MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location)
-            };
-            return references;
-        }
-        private Assembly CompileAndLoadAssembly(CSharpCompilation compilation)
-        {
-            using var ms = new MemoryStream();
-            var result = compilation.Emit(ms);
-            ThrowExceptionIfCompilationFailure(result);
-            ms.Seek(0, SeekOrigin.Begin);
-            var assembly = Assembly.Load(ms.ToArray());
-            return assembly;
-        }
-        private void ThrowExceptionIfCompilationFailure(EmitResult result)
-        {
-            if (!result.Success)
-            {
-                var compilationErrors = result.Diagnostics.Where(diagnostic =>
-                        diagnostic.IsWarningAsError ||
-                        diagnostic.Severity == DiagnosticSeverity.Error)
-                    .ToList();
-                if (compilationErrors.Any())
-                {
-                    var firstError = compilationErrors.First();
-                    var errorNumber = firstError.Id;
-                    var errorDescription = firstError.GetMessage();
-                    var firstErrorMessage = $"{errorNumber}: {errorDescription};";
-                    throw new InvalidOperationException($"Compilation failed, first error is: {firstErrorMessage}");
-                }
+                var firstError = compilationErrors.First();
+                var errorNumber = firstError.Id;
+                var errorDescription = firstError.GetMessage();
+                var firstErrorMessage = $"{errorNumber}: {errorDescription};";
+                throw new InvalidOperationException($"Compilation failed, first error is: {firstErrorMessage}");
             }
         }
     }

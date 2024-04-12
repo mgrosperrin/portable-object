@@ -1,16 +1,15 @@
-﻿namespace MGR.PortableObject.Comments
+﻿namespace MGR.PortableObject.Comments;
+
+/// <summary>
+/// Represents a previous untranslated string comment.
+/// </summary>
+public class PreviousUntranslatedStringComment : PortableObjectCommentBase
 {
     /// <summary>
-    /// Represents a previous untranslated string comment.
+    /// Creates a new instance of <see cref="PreviousUntranslatedStringComment"/>.
     /// </summary>
-    public class PreviousUntranslatedStringComment : PortableObjectCommentBase
+    /// <param name="text">The previous untranslated string.</param>
+    public PreviousUntranslatedStringComment(string text) : base(text)
     {
-        /// <summary>
-        /// Creates a new instance of <see cref="PreviousUntranslatedStringComment"/>.
-        /// </summary>
-        /// <param name="text">The previous untranslated string.</param>
-        public PreviousUntranslatedStringComment(string text) : base(text)
-        {
-        }
     }
 }

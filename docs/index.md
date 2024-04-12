@@ -1,7 +1,7 @@
 MGR.PortableObject documentation
 ===
 
-`MGR.PortableObject` is a set of library to deal with PortableObject catalog and file.
+`MGR.PortableObject` is a set of libraries to deal with PortableObject catalog and file.
 
 # MGR.PortableObject
 
@@ -13,6 +13,6 @@ You can learn more about [the API](./catalog.md).
 # MGR.PortableObject.Parsing
 
 `MGR.PortableObject.Parsing` is a library to parse
-a .po file and gets a `ICatalog`.
+a .po file and gets a [`ICatalog`](xref:MGR.PortableObject.ICatalog).
 
 You can learn more about [parsing a .po file here](./parse-file.md).

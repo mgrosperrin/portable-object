@@ -1,6 +1,5 @@
-﻿namespace MGR.PortableObject.UnitTests.Parsing
+﻿namespace MGR.PortableObject.UnitTests.Parsing;
+
+public partial class PortableObjectParserTests
 {
-    public partial class PortableObjectParserTests
-    {
-    }
 }

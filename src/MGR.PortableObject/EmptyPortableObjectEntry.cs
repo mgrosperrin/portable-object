@@ -3,30 +3,34 @@ using System.Collections.Generic;
 using System.Linq;
 using MGR.PortableObject.Comments;
 
-namespace MGR.PortableObject
+namespace MGR.PortableObject;
+
+/// <summary>
+/// Represents an empty entry of the PortableObject file.
+/// </summary>
+public class EmptyPortableObjectEntry : IPortableObjectEntry
 {
-    internal class EmptyPortableObjectEntry : IPortableObjectEntry
+    private static readonly ConcurrentDictionary<PortableObjectKey, EmptyPortableObjectEntry>  Entries = new();
+
+    private EmptyPortableObjectEntry(PortableObjectKey key)
     {
-        private static readonly ConcurrentDictionary<PortableObjectKey, EmptyPortableObjectEntry>  Entries = new ConcurrentDictionary<PortableObjectKey, EmptyPortableObjectEntry>();
-
-        private EmptyPortableObjectEntry(PortableObjectKey key)
-        {
-            Key = key;
-        }
-
-        public PortableObjectKey Key { get; }
-        public bool HasTranslation { get; } = false;
-        public int Count { get; } = 0;
-        public IEnumerable<PortableObjectCommentBase> Comments { get; } = Enumerable.Empty<PortableObjectCommentBase>();
-
-        public string GetTranslation(int quantity)
-        {
-            return quantity <= 1 ? Key.Id : Key.IdPlural ?? Key.Id;
-        }
-
-        public static IPortableObjectEntry ForKey(PortableObjectKey key)
-        {
-            return Entries.GetOrAdd(key, _ => new EmptyPortableObjectEntry(_));
-        }
+        Key = key;
     }
+    /// <inheritdoc />
+    public PortableObjectKey Key { get; }
+    /// <inheritdoc />
+    public bool HasTranslation { get; } = false;
+    /// <inheritdoc />
+    public int Count { get; } = 0;
+    /// <inheritdoc />
+    public IEnumerable<PortableObjectCommentBase> Comments { get; } = Enumerable.Empty<PortableObjectCommentBase>();
+
+    /// <inheritdoc />
+    public string GetTranslation(int quantity) => quantity <= 1 ? Key.Id : Key.IdPlural ?? Key.Id;
+    /// <summary>
+    /// Creates a new instance of <see cref="EmptyPortableObjectEntry"/> for the specified key.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public static IPortableObjectEntry ForKey(PortableObjectKey key) => Entries.GetOrAdd(key, _ => new EmptyPortableObjectEntry(_));
 }

@@ -1,31 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-      <TargetFramework />
-      <TargetFrameworks>netcoreapp3.1;net472;net48</TargetFrameworks>
-      <DocumentationFile />
-      <IsPackable>false</IsPackable>
+    <TargetFramework />
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
+    <DocumentationFile />
+    <IsPackable>false</IsPackable>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
-    <ItemGroup>
-        <None Remove="Parsing\Resources\*.po" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <EmbeddedResource Include="Parsing\Resources\*.po" />
-    </ItemGroup>
+  <ItemGroup>
+    <None Remove="Parsing\Resources\*.po" />
+  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="1.1.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <EmbeddedResource Include="Parsing\Resources\*.po" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
 
   <ItemGroup>
