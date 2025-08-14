@@ -29,6 +29,20 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "docs", "docs\docs.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MGR.PortableObject", "src\MGR.PortableObject\MGR.PortableObject.csproj", "{DBC4E3F3-0D44-4DAF-98E6-544BF7C7646C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		.github\dependabot.yml = .github\dependabot.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{A904950F-4235-418B-9C84-398FA3D50280}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\buildAndPublish.yml = .github\workflows\buildAndPublish.yml
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
+		.github\workflows\generateDocs.yml = .github\workflows\generateDocs.yml
+		.github\workflows\release.yml = .github\workflows\release.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +72,8 @@ Global
 		{A98AEE6D-DBC0-48BD-97AE-F1F78E135F31} = {0614EABA-0441-48DC-8427-382F58115161}
 		{78AD8D7D-585E-4D96-A033-6ECA91FC8728} = {4A081F94-8215-4D9E-B9BB-64038B9CCABD}
 		{DBC4E3F3-0D44-4DAF-98E6-544BF7C7646C} = {11A0165A-CF3B-4773-8B76-62D420990237}
+		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {6C41737C-8A4A-4FDC-B3AD-DC549983257B}
+		{A904950F-4235-418B-9C84-398FA3D50280} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DE797F74-7D44-4018-B58A-F62A4EFC1075}
