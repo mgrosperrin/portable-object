@@ -2,7 +2,15 @@
 
   <PropertyGroup>
     <Description>MGR.PortableObject.Parsing is a package containing a .NET parser of PortableObject (GNU gettext) files.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MGR.PortableObject\MGR.PortableObject.csproj" />
