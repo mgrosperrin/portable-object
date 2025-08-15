@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <Description>MGR.PortableObject is a package containing the .NET implementation of PortableObject (GNU gettext) catalog.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
