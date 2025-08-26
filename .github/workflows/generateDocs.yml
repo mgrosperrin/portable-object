@@ -16,7 +16,7 @@ jobs:
           args: docs/docfx.json
 
       - name: Upload documentation archive
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: artifacts/_site
   
