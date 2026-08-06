@@ -1,0 +1,36 @@
+<Solution>
+  <Folder Name="/docs/">
+    <Project Path="docs/docs.csproj">
+      <Build Project="false" />
+    </Project>
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="coverlet.runsettings" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/">
+    <File Path=".github/dependabot.yml" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/workflows/">
+    <File Path=".github/workflows/build.yml" />
+    <File Path=".github/workflows/ci.yml" />
+    <File Path=".github/workflows/codeql-analysis.yml" />
+    <File Path=".github/workflows/generate-docs.yml" />
+    <File Path=".github/workflows/publish-packages-myget.yml" />
+    <File Path=".github/workflows/publish-packages-nuget.yml" />
+    <File Path=".github/workflows/release.yml" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/MGR.PortableObject.Parsing/MGR.PortableObject.Parsing.csproj" />
+    <Project Path="src/MGR.PortableObject/MGR.PortableObject.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MGR.PortableObject.UnitTests/MGR.PortableObject.UnitTests.csproj" />
+  </Folder>
+</Solution>

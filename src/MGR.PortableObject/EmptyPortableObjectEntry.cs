@@ -10,7 +10,7 @@ namespace MGR.PortableObject;
 /// </summary>
 public class EmptyPortableObjectEntry : IPortableObjectEntry
 {
-    private static readonly ConcurrentDictionary<PortableObjectKey, EmptyPortableObjectEntry>  Entries = new();
+    private static readonly ConcurrentDictionary<PortableObjectKey, EmptyPortableObjectEntry> Entries = new();
 
     private EmptyPortableObjectEntry(PortableObjectKey key)
     {
