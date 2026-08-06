@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using MGR.PortableObject.Comments;
 using MGR.PortableObject.Parsing;
@@ -191,7 +192,7 @@ public partial class PortableObjectParserTests
                 testAssembly.GetManifestResourceStream(fullResourceName) ??
                 throw new ArgumentException(nameof(resourceName)))
             {
-                using (var reader = new StreamReader(resource))
+                using (var reader = new StreamReader(resource, Encoding.UTF8))
                 {
                     return await parser.ParseAsync(reader, new CultureInfo("fr-fr"));
                 }
