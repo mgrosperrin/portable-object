@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -26,7 +26,7 @@ public partial class PortableObjectParserTests
 
             Assert.True(entry.HasTranslation);
             Assert.Equal(1, entry.Count);
-            Assert.Equal("Erreur système inconnue", entry.GetTranslation());
+            Assert.Equal("Erreur systÃ¨me inconnue", entry.GetTranslation());
         }
 
         [Fact]
@@ -50,7 +50,7 @@ public partial class PortableObjectParserTests
             var entry = catalog.GetEntry(new PortableObjectKey("Unknown system error"));
             Assert.True(entry.HasTranslation);
             Assert.Equal(1, entry.Count);
-            Assert.Equal("Erreur système inconnue", entry.GetTranslation());
+            Assert.Equal("Erreur systÃ¨me inconnue", entry.GetTranslation());
         }
 
         [Fact]
@@ -62,7 +62,7 @@ public partial class PortableObjectParserTests
 
             var entry = catalog.GetEntry(new PortableObjectKey("MGR.Localization", "Unknown system error"));
             Assert.True(entry.HasTranslation);
-            Assert.Equal("Erreur système inconnue", entry.GetTranslation());
+            Assert.Equal("Erreur systÃ¨me inconnue", entry.GetTranslation());
         }
 
         [Fact]
@@ -74,7 +74,7 @@ public partial class PortableObjectParserTests
 
             var entry = catalog.GetEntry(new PortableObjectKey("MGR.Localization", "Unknown system error"));
             Assert.True(entry.HasTranslation);
-            Assert.Equal("Erreur système inconnue", entry.GetTranslation());
+            Assert.Equal("Erreur systÃ¨me inconnue", entry.GetTranslation());
             Assert.Equal(2, entry.Comments.Count());
             var firstComment = entry.Comments.First();
             Assert.IsType<PreviousUntranslatedStringComment>(firstComment);
@@ -119,7 +119,7 @@ public partial class PortableObjectParserTests
                 "Here is an example of how one might continue a very long string\nfor the common case the string represents multi-line output."));
             Assert.True(entry.HasTranslation);
             Assert.Equal(
-                "Ceci est un exemple de comment une traduction très longue peut continuer\npour le cas commun où le texte serait sur plusieurs lignes.",
+                "Ceci est un exemple de comment une traduction trÃ¨s longue peut continuer\npour le cas commun oÃ¹ le texte serait sur plusieurs lignes.",
                 entry.GetTranslation());
         }
 
@@ -166,7 +166,7 @@ public partial class PortableObjectParserTests
             entry = catalog.GetEntry(new PortableObjectKey("MGR.Directory", "Directory {0} does not exist"));
 
             Assert.True(entry.HasTranslation);
-            Assert.Equal("Le répertoire {0} n'existe pas", entry.GetTranslation());
+            Assert.Equal("Le rÃ©pertoire {0} n'existe pas", entry.GetTranslation());
         }
 
         [Fact]
