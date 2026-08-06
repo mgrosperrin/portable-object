@@ -58,7 +58,7 @@ internal static class PluralForms
         AddRule(["ar"], 6, n => n == 0 ? 0 : n == 1 ? 1 : n == 2 ? 2 : n % 100 >= 3 && n % 100 <= 10 ? 3 : n % 100 >= 11 ? 4 : 5);
     }
 
-    private static void AddRule(string[] cultures,int numberOfPluralForms, Func<int, int> rule)
+    private static void AddRule(string[] cultures, int numberOfPluralForms, Func<int, int> rule)
     {
         var pluralForm = new FuncBasedPluralForm(numberOfPluralForms, rule);
         foreach (var culture in cultures)

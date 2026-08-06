@@ -9,7 +9,7 @@ internal class CatalogBuilder
     private readonly CultureInfo _culture;
     private readonly PortableObjectEntryBuilder _entryBuilder;
 
-    private readonly List< IPortableObjectEntry> _entries = [];
+    private readonly List<IPortableObjectEntry> _entries = [];
 
     public CatalogBuilder(ParsingContext parsingContext, CultureInfo culture)
     {
