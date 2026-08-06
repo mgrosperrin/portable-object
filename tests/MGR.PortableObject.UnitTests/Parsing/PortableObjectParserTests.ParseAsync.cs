@@ -182,7 +182,7 @@ public partial class PortableObjectParserTests
             Assert.Equal("#! reference:123", error.LineContent);
         }
 
-        private async Task<ParsingResult> ParseText(string resourceName)
+        private static async Task<ParsingResult> ParseText(string resourceName)
         {
             var fullResourceName = $"MGR.PortableObject.UnitTests.Parsing.Resources.{resourceName}.po";
             var parser = new PortableObjectParser();
